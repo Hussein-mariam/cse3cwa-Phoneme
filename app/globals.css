@@ -1,49 +1,105 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html {
-  height: 100%;
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
 * {
   box-sizing: border-box;
-  padding: 0;
   margin: 0;
+  padding: 0;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #121213;
+  line-height: 1.5;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+.header {
+  background: #ffffff;
+  color: #121213;
+  border-bottom: 1px solid #d3d6da;
+  padding: 12px 16px;
+}
+
+.header h1 {
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+main {
+  padding: 16px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+h2 {
+  margin-bottom: 10px;
+}
+
+h3 {
+  margin-bottom: 8px;
+}
+
+p {
+  margin-bottom: 10px;
+}
+
+.box {
+  border: 1px solid #d3d6da;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+select {
+  display: block;
+  padding: 6px;
+  margin-bottom: 10px;
+  border: 1px solid #d3d6da;
+  width: 100%;
+  max-width: 260px;
+}
+
+button {
+  padding: 8px 14px;
+  background: #d3d6da;
+  color: #121213;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-right: 6px;
+  margin-top: 6px;
+}
+
+button:hover {
+  background: #bcc0c4;
+}
+
+.msg {
+  padding: 8px;
+  background: #f6f7f8;
+  border: 1px solid #d3d6da;
+  margin-bottom: 10px;
+}
+
+.answer {
+  padding: 10px;
+  background: #6aaa64;
+  color: white;
+  margin-bottom: 10px;
+  font-size: 18px;
+  border-radius: 4px;
+}
+
+footer {
+  border-top: 1px solid #d3d6da;
+  padding: 12px 16px;
+  margin-top: 24px;
+  font-size: 14px;
+  color: #6e6e6e;
 }
