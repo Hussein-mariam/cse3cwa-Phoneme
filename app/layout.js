@@ -1,8 +1,10 @@
 import "./globals.css";
+import Nav from "@/components/Nav";
+import Footer from "@/components/Footer";
 
 export const metadata = {
   title: "Phoneme Wordle Builder",
-  description: "Build phoneme Wordle activities",
+  description: "Build phoneme Wordle",
 };
 
 export default function RootLayout({ children }) {
@@ -12,10 +14,9 @@ export default function RootLayout({ children }) {
         <div className="header">
           <h1>Assessment 1 - Phoneme Wordle Builder</h1>
         </div>
+        <Nav />
         <main>{children}</main>
-        <footer>
-          <p>Mariam - 21582294</p>
-        </footer>
+        <Footer />
       </body>
     </html>
   );
