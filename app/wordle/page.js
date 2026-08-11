@@ -2,11 +2,26 @@
 
 import { useState } from "react";
 import { words } from "@/lib/words";
+import Grid from "@/components/Grid";
+import Keypad from "@/components/Keypad";
+import { score } from "@/lib/score";
 
 export default function WordlePage() {
   const [chosen, setChosen] = useState("thin");
+  const [current, setCurrent] = useState([]);
 
   const word = words.find((w) => w.word === chosen);
+
+  function pick(symbol) {
+    if (current.length >= word.phonemes.length) {
+      return;
+    }
+    setCurrent((row) => [...row, symbol]);
+  }
+
+  function back() {
+    setCurrent((row) => row.slice(0, -1));
+  }
 
   return (
     <div>
@@ -19,7 +34,10 @@ export default function WordlePage() {
         <select
           id="word"
           value={chosen}
-          onChange={(event) => setChosen(event.target.value)}
+          onChange={(event) => {
+            setChosen(event.target.value);
+            setCurrent([]);
+          }}
         >
           {words.map((w) => (
             <option key={w.word} value={w.word}>
@@ -27,10 +45,21 @@ export default function WordlePage() {
             </option>
           ))}
         </select>
+      </div>
 
-        <p>
-          Answer: /{word.phonemes.join(" ")}/ = <b>{word.word}</b>
-        </p>
+      <div className="box">
+        <h3>Preview</h3>
+
+        <Grid
+          rows={6}
+          cols={word.phonemes.length}
+          guesses={[]}
+          current={current}
+        />
+
+        <Keypad onPick={pick} keyStates={{}} showLetters={true} />
+
+        <button onClick={back}>Delete</button>
       </div>
     </div>
   );
