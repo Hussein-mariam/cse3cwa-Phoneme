@@ -1,4 +1,4 @@
-import { phonemes } from "@/lib/phonemes";
+import { phonemes, getHint } from "@/lib/phonemes";
 
 export default function Keypad({ onPick, keyStates, showLetters }) {
   return (
@@ -17,6 +17,7 @@ export default function Keypad({ onPick, keyStates, showLetters }) {
           >
             {p.symbol}
             {showLetters && <span className="small">{p.letters}</span>}
+            <span className="tip">{getHint(p.symbol)}</span>
           </button>
         );
       })}

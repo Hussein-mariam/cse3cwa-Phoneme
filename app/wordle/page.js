@@ -3,11 +3,14 @@
 import { useState } from "react";
 import { words } from "@/lib/words";
 import { score } from "@/lib/score";
+import { exportWordle } from "@/lib/exportWordle";
 import Grid from "@/components/Grid";
 import Keypad from "@/components/Keypad";
 
 export default function WordlePage() {
   const [chosen, setChosen] = useState("thin");
+  const [maxGuesses, setMaxGuesses] = useState(6);
+  const [showLetters, setShowLetters] = useState(true);
   const [current, setCurrent] = useState([]);
   const [guesses, setGuesses] = useState([]);
   const [keyStates, setKeyStates] = useState({});
@@ -26,6 +29,11 @@ export default function WordlePage() {
 
   function changeWord(event) {
     setChosen(event.target.value);
+    reset();
+  }
+
+  function changeGuesses(event) {
+    setMaxGuesses(Number(event.target.value));
     reset();
   }
 
@@ -79,12 +87,24 @@ export default function WordlePage() {
     if (win) {
       setOver(true);
       setMsg("Correct!");
-    } else if (played.length >= 6) {
+    } else if (played.length >= maxGuesses) {
       setOver(true);
       setMsg("Out of guesses.");
     } else {
       setMsg("Try again.");
     }
+  }
+
+  function download() {
+    const html = exportWordle(word, maxGuesses, showLetters);
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "phoneme-wordle.html";
+    link.click();
+    URL.revokeObjectURL(url);
+    setMsg("Downloaded phoneme-wordle.html");
   }
 
   return (
@@ -102,13 +122,32 @@ export default function WordlePage() {
             </option>
           ))}
         </select>
+
+        <label htmlFor="guesses">Number of guesses</label>
+        <select id="guesses" value={maxGuesses} onChange={changeGuesses}>
+          <option value={4}>4 (hard)</option>
+          <option value={6}>6 (normal)</option>
+          <option value={8}>8 (easy)</option>
+        </select>
+
+        <label htmlFor="letters">
+          <input
+            id="letters"
+            type="checkbox"
+            checked={showLetters}
+            onChange={(event) => setShowLetters(event.target.checked)}
+          />
+          Show English letters on the keys
+        </label>
+
+        <button onClick={download}>Download HTML</button>
       </div>
 
       <div className="box">
         <h3>Preview</h3>
 
         <Grid
-          rows={6}
+          rows={maxGuesses}
           cols={word.phonemes.length}
           guesses={guesses}
           current={current}
@@ -122,7 +161,7 @@ export default function WordlePage() {
           </div>
         )}
 
-        <Keypad onPick={pick} keyStates={keyStates} showLetters={true} />
+        <Keypad onPick={pick} keyStates={keyStates} showLetters={showLetters} />
 
         <button onClick={check}>Check</button>
         <button onClick={back}>Delete</button>
