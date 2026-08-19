@@ -1,23 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { words } from "@/lib/words";
 import { score } from "@/lib/score";
 import { exportWordle } from "@/lib/exportWordle";
 import Grid from "@/components/Grid";
 import Keypad from "@/components/Keypad";
+import AddWord from "@/components/AddWord";
 
 export default function WordlePage() {
+//settings for teacher controls
+  const [extra, setExtra] = useState([]);
   const [chosen, setChosen] = useState("thin");
   const [maxGuesses, setMaxGuesses] = useState(6);
   const [showLetters, setShowLetters] = useState(true);
+
+  //for the previw
   const [current, setCurrent] = useState([]);
   const [guesses, setGuesses] = useState([]);
   const [keyStates, setKeyStates] = useState({});
   const [msg, setMsg] = useState("");
   const [over, setOver] = useState(false);
 
-  const word = words.find((w) => w.word === chosen);
+  // localStorage only exists in the browser, so it has to be read after the
+  // page loads. Reading it while rendering would make the server and the
+  // browser produce different HTML.
+  useEffect(() => {
+    const saved = localStorage.getItem("extraWords");
+    if (saved) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setExtra(JSON.parse(saved));
+    }
+  }, []);
+
+  // build  in words and whatever the teacher adds
+  const allWords = [...words, ...extra];
+  // safety net incase the chosen word gets deleted
+  const word = allWords.find((w) => w.word === chosen) || allWords[0];
 
   function reset() {
     setCurrent([]);
@@ -25,6 +44,24 @@ export default function WordlePage() {
     setKeyStates({});
     setMsg("");
     setOver(false);
+  }
+
+  function addWord(newWord) {
+    const updated = [...extra, newWord];
+    setExtra(updated);
+    localStorage.setItem("extraWords", JSON.stringify(updated));
+    setChosen(newWord.word);
+    reset();
+  }
+
+  function removeWord(name) {
+    const updated = extra.filter((w) => w.word !== name);
+    setExtra(updated);
+    localStorage.setItem("extraWords", JSON.stringify(updated));
+    if (chosen === name) {
+      setChosen(words[0].word);
+    }
+    reset();
   }
 
   function changeWord(event) {
@@ -66,6 +103,7 @@ export default function WordlePage() {
     const result = score(current, word.phonemes);
     const played = [...guesses, { symbols: current, result: result }];
 
+    // colour keypad, if green never chaanges
     const states = { ...keyStates };
     for (let i = 0; i < current.length; i++) {
       if (states[current[i]] !== "correct") {
@@ -77,6 +115,7 @@ export default function WordlePage() {
     setKeyStates(states);
     setCurrent([]);
 
+    // only won if all are correct
     let win = true;
     for (let i = 0; i < result.length; i++) {
       if (result[i] !== "correct") {
@@ -116,7 +155,7 @@ export default function WordlePage() {
 
         <label htmlFor="word">Target word</label>
         <select id="word" value={chosen} onChange={changeWord}>
-          {words.map((w) => (
+          {allWords.map((w) => (
             <option key={w.word} value={w.word}>
               {w.word} - /{w.phonemes.join(" ")}/
             </option>
@@ -142,6 +181,22 @@ export default function WordlePage() {
 
         <button onClick={download}>Download HTML</button>
       </div>
+
+      <AddWord onAdd={addWord} existing={allWords} />
+
+      {extra.length > 0 && (
+        <div className="box">
+          <h3>Your words</h3>
+          <ul className="yourwords">
+            {extra.map((w) => (
+              <li key={w.word}>
+                {w.word} - /{w.phonemes.join(" ")}/
+                <button onClick={() => removeWord(w.word)}>Remove</button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="box">
         <h3>Preview</h3>

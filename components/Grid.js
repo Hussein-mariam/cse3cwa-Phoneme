@@ -1,3 +1,5 @@
+// the grid has one row for each guess the student is allowed
+
 export default function Grid({ rows, cols, guesses, current }) {
   const board = [];
 
@@ -9,6 +11,7 @@ export default function Grid({ rows, cols, guesses, current }) {
       let className = "tile";
 
       if (r < guesses.length) {
+        // a guess that has already been checked, so show it with its colour
         text = guesses[r].symbols[c];
         className = "tile " + guesses[r].result[c];
       } else if (r === guesses.length) {

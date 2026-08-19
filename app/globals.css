@@ -265,3 +265,19 @@ input[type="text"] {
   min-height: 36px;
   font-size: 18px;
 }
+
+.yourwords {
+  list-style: none;
+}
+
+.yourwords li {
+  padding: 6px 0;
+  border-bottom: 1px solid #d3d6da;
+  font-size: 15px;
+}
+
+.yourwords button {
+  margin-left: 10px;
+  padding: 2px 8px;
+  font-size: 13px;
+}

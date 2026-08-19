@@ -1,5 +1,6 @@
 import { phonemes, getHint } from "@/lib/phonemes";
 
+// The phoneme buttons , students have to tap these because there is no key on a normal keyboard for symbols
 export default function Keypad({ onPick, keyStates, showLetters }) {
   return (
     <div className="keypad">

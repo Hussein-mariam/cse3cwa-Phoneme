@@ -7,6 +7,7 @@ export const metadata = {
   description: "Build phoneme Wordle",
 };
 
+// for everypage, so the header, nav and footer only get written once.
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
