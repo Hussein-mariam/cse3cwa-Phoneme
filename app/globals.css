@@ -226,3 +226,42 @@ footer {
 .key:focus .tip {
   display: block;
 }
+
+@media (max-width: 600px) {
+  .navlinks {
+    display: none;
+  }
+
+  .menubtn {
+    display: block;
+    background: #d3d6da;
+    color: #121213;
+    border: none;
+    padding: 4px 10px;
+    margin: 0;
+  }
+
+  .tile {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+}
+
+input[type="text"] {
+  display: block;
+  padding: 6px;
+  margin-bottom: 10px;
+  border: 1px solid #d3d6da;
+  width: 100%;
+  max-width: 260px;
+}
+
+.parts {
+  padding: 8px;
+  background: #f6f7f8;
+  border: 1px solid #d3d6da;
+  margin-bottom: 10px;
+  min-height: 36px;
+  font-size: 18px;
+}
