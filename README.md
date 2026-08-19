@@ -1,38 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Phoneme Wordle Builder
 
-## Getting Started
+Assessment 1 cse3cwa
 
-First, run the development server:
+Name: Mariam
+Student number: 21582294
 
-```bash
+A website for Speech Pathology teachers. The teacher picks a word made of
+phoneme symbols, sets how hard it should be, checks it works in the preview,
+then downloads it as a single HTML file that students can play in any browser.
+
+## Running it
+
+```
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open http://localhost:3000
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Pages
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Home** - what the site does
+- **Wordle** - build a phoneme Wordle game
+- **Word Search** - build a phoneme word search
+- **About** - what the project is, my details, and the walkthrough video
+- **Settings** - light or dark theme and text size, saved in cookies
 
-## Learn More
+## Folders
+- app/ - the pages. Each folder name becomes a URL and page.js is the page. layout.js wraps every page so the header, nav and footer are written once.
+- components/ - parts used in more than one place: Grid, Keypad, Nav, Footer, AddWord and Theme.
+- lib/ - the data and the logic, with no React in it. phonemes.js and words.js are just lists, score.js marks a guess, wordsearch.js builds the grid, and the two export files build the downloadable pages.
+- public/ - the walkthrough video.
 
-To learn more about Next.js, take a look at the following resources:
+## How the download works
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The teacher's settings get turned into one long piece of text that is a whole HTML page, with the CSS and the JavaScript inside it. The browser then saves that text as a file. Because everything is in the one file it needs no internet and no server, so it can be opened straight from a desktop or a USB stick.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Things worth knowing about the code
 
-## Deploy on Vercel
+Phonemes are stored as a list, not as one string. Some sounds are written with two characters, so splitting a string would give the wrong number of tiles.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Marking a guess takes two passes. The first finds sounds in the right place and
+crosses them off a copy of the answer, the second looks for the leftovers. The
+crossing off is what makes words with a repeated sound, like "tent", work.
 
-# Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Scope
 
-# cse3cwa
+Assessment 1 is frontend only, so there is no database. The phonemes and the
+word list are kept in `lib/phonemes.js` and `lib/words.js`.
