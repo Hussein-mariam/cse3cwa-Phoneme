@@ -281,3 +281,97 @@ input[type="text"] {
   padding: 2px 8px;
   font-size: 13px;
 }
+
+/* --- dark mode, these only apply when Settings has put theme="dark" on the page. */
+
+[data-theme="dark"] body {
+  background: #121213;
+  color: #f5f5f5;
+}
+
+[data-theme="dark"] .header,
+[data-theme="dark"] .nav {
+  background: #121213;
+  color: #f5f5f5;
+  border-bottom-color: #3a3a3c;
+}
+
+[data-theme="dark"] .nav a,
+[data-theme="dark"] .header h1 {
+  color: #f5f5f5;
+}
+
+[data-theme="dark"] .box {
+  border-color: #3a3a3c;
+  background: #1a1a1b;
+}
+
+[data-theme="dark"] .menulist {
+  background: #1a1a1b;
+  border-color: #3a3a3c;
+}
+
+[data-theme="dark"] select,
+[data-theme="dark"] input[type="text"] {
+  background: #1a1a1b;
+  color: #f5f5f5;
+  border-color: #3a3a3c;
+}
+
+[data-theme="dark"] .tile {
+  border-color: #3a3a3c;
+}
+
+[data-theme="dark"] .key,
+[data-theme="dark"] button,
+[data-theme="dark"] .menubtn {
+  background: #818384;
+  color: #f5f5f5;
+}
+
+[data-theme="dark"] .key:hover,
+[data-theme="dark"] button:hover {
+  background: #6e7071;
+}
+
+[data-theme="dark"] .key .small {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .key .tip {
+  background: #f5f5f5;
+  color: #121213;
+}
+
+[data-theme="dark"] .msg,
+[data-theme="dark"] .parts {
+  background: #1a1a1b;
+  border-color: #3a3a3c;
+}
+
+[data-theme="dark"] .yourwords li {
+  border-bottom-color: #3a3a3c;
+}
+
+[data-theme="dark"] footer {
+  border-top-color: #3a3a3c;
+  color: #a0a0a0;
+}
+
+/* - Larger text option - */
+
+[data-text="large"] body {
+  font-size: 19px;
+}
+
+[data-text="large"] .tile {
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+}
+
+[data-text="large"] .key {
+  min-width: 52px;
+  min-height: 56px;
+  font-size: 18px;
+}
