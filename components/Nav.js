@@ -4,8 +4,11 @@ import Link from "next/link";
 import { useState } from "react";
 
 export default function Nav() {
-  // Whether the small screen menu is open.
   const [open, setOpen] = useState(false);
+
+  function closeMenu() {
+    setOpen(false);
+  }
 
   return (
     <div className="nav">
@@ -17,26 +20,32 @@ export default function Nav() {
         <Link href="/settings">Settings</Link>
       </div>
 
-      {/* this button is hidden on desktop by the media query in globals.css */}
-      <button className="menubtn" onClick={() => setOpen(!open)}>
+      <button
+        className="menubtn"
+        onClick={() => setOpen(!open)}
+      >
         Menu
       </button>
 
       {open && (
         <div className="menulist">
-          <Link href="/" onClick={() => setOpen(false)}>
+          <Link href="/" onClick={closeMenu}>
             Home
           </Link>
-          <Link href="/wordle" onClick={() => setOpen(false)}>
+
+          <Link href="/wordle" onClick={closeMenu}>
             Wordle
           </Link>
-          <Link href="/word-search" onClick={() => setOpen(false)}>
+
+          <Link href="/word-search" onClick={closeMenu}>
             Word Search
           </Link>
-          <Link href="/about" onClick={() => setOpen(false)}>
+
+          <Link href="/about" onClick={closeMenu}>
             About
           </Link>
-          <Link href="/settings" onClick={() => setOpen(false)}>
+
+          <Link href="/settings" onClick={closeMenu}>
             Settings
           </Link>
         </div>

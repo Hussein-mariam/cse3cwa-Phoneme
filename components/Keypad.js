@@ -1,24 +1,36 @@
 import { phonemes, getHint } from "@/lib/phonemes";
 
-// The phoneme buttons , students have to tap these because there is no key on a normal keyboard for symbols
-export default function Keypad({ onPick, keyStates, showLetters }) {
+export default function Keypad({
+  onPick,
+  keyStates,
+  showLetters
+}) {
   return (
     <div className="keypad">
-      {phonemes.map((p) => {
+      {phonemes.map((phoneme) => {
         let className = "key";
-        if (keyStates[p.symbol]) {
-          className = "key " + keyStates[p.symbol];
+
+        if (keyStates[phoneme.symbol]) {
+          className = "key " + keyStates[phoneme.symbol];
         }
 
         return (
           <button
-            key={p.symbol}
+            key={phoneme.symbol}
             className={className}
-            onClick={() => onPick(p.symbol)}
+            onClick={() => onPick(phoneme.symbol)}
           >
-            {p.symbol}
-            {showLetters && <span className="small">{p.letters}</span>}
-            <span className="tip">{getHint(p.symbol)}</span>
+            {phoneme.symbol}
+
+            {showLetters && (
+              <span className="small">
+                {phoneme.letters}
+              </span>
+            )}
+
+            <span className="tip">
+              {getHint(phoneme.symbol)}
+            </span>
           </button>
         );
       })}

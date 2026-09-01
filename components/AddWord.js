@@ -9,12 +9,16 @@ export default function AddWord({ onAdd, existing }) {
   const [msg, setMsg] = useState("");
 
   function pick(symbol) {
-    setParts((row) => [...row, symbol]);
+    const newParts = [...parts, symbol];
+
+    setParts(newParts);
     setMsg("");
   }
 
   function back() {
-    setParts((row) => row.slice(0, -1));
+    const newParts = parts.slice(0, -1);
+
+    setParts(newParts);
   }
 
   function add() {
@@ -30,12 +34,22 @@ export default function AddWord({ onAdd, existing }) {
       return;
     }
 
-    if (existing.some((w) => w.word === name)) {
+    const alreadyExists = existing.some(
+      (word) => word.word === name
+    );
+
+    if (alreadyExists) {
       setMsg(name + " is already in the list.");
       return;
     }
 
-    onAdd({ word: name, phonemes: parts });
+    const newWord = {
+      word: name,
+      phonemes: parts
+    };
+
+    onAdd(newWord);
+
     setSpelling("");
     setParts([]);
     setMsg("Added " + name + ".");
@@ -45,26 +59,47 @@ export default function AddWord({ onAdd, existing }) {
     <div className="box">
       <h3>Add your own word</h3>
 
-      <label htmlFor="spelling">English spelling</label>
+      <label htmlFor="spelling">
+        English spelling
+      </label>
+
       <input
         id="spelling"
         type="text"
         value={spelling}
-        onChange={(event) => setSpelling(event.target.value)}
+        onChange={(event) =>
+          setSpelling(event.target.value)
+        }
         placeholder="for example: shop"
       />
 
       <label>Phonemes</label>
+
       <div className="parts">
-        {parts.length === 0 ? "Use the buttons below" : "/" + parts.join(" ") + "/"}
+        {parts.length === 0
+          ? "Use the buttons below"
+          : "/" + parts.join(" ") + "/"}
       </div>
 
-      <Keypad onPick={pick} keyStates={{}} showLetters={true} />
+      <Keypad
+        onPick={pick}
+        keyStates={{}}
+        showLetters={true}
+      />
 
-      {msg && <div className="msg">{msg}</div>}
+      {msg && (
+        <div className="msg">
+          {msg}
+        </div>
+      )}
 
-      <button onClick={add}>Add word</button>
-      <button onClick={back}>Delete phoneme</button>
+      <button onClick={add}>
+        Add word
+      </button>
+
+      <button onClick={back}>
+        Delete phoneme
+      </button>
     </div>
   );
 }

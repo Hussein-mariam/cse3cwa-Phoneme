@@ -32,9 +32,6 @@ Then open http://localhost:3000
 - lib/ - the data and the logic, with no React in it. phonemes.js and words.js are just lists, score.js marks a guess, wordsearch.js builds the grid, and the two export files build the downloadable pages.
 - public/ - the walkthrough video.
 
-## How the download works
-
-The teacher's settings get turned into one long piece of text that is a whole HTML page, with the CSS and the JavaScript inside it. The browser then saves that text as a file. Because everything is in the one file it needs no internet and no server, so it can be opened straight from a desktop or a USB stick.
 
 ## Things worth knowing about the code
 

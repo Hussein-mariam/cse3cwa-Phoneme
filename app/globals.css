@@ -11,10 +11,10 @@ body {
 }
 
 .header {
-  background: #ffffff;
+  background: white;
   color: #121213;
   border-bottom: 1px solid #d3d6da;
-  padding: 12px 16px;
+  padding: 16px 24px;
 }
 
 .header h1 {
@@ -25,17 +25,17 @@ body {
 }
 
 main {
-  padding: 16px;
-  max-width: 800px;
+  padding: 28px 24px 48px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
 h2 {
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
 h3 {
-  margin-bottom: 8px;
+  margin-bottom: 14px;
 }
 
 p {
@@ -44,18 +44,29 @@ p {
 
 .box {
   border: 1px solid #d3d6da;
-  padding: 12px;
-  margin-bottom: 16px;
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 24px;
 }
 
 label {
   display: block;
-  margin-bottom: 4px;
+  margin-top: 14px;
+  margin-bottom: 6px;
   font-weight: bold;
   font-size: 14px;
 }
 
 select {
+  display: block;
+  padding: 8px;
+  margin-bottom: 4px;
+  border: 1px solid #d3d6da;
+  width: 100%;
+  max-width: 260px;
+}
+
+input[type="text"] {
   display: block;
   padding: 6px;
   margin-bottom: 10px;
@@ -80,34 +91,14 @@ button:hover {
   background: #bcc0c4;
 }
 
-.msg {
-  padding: 8px;
-  background: #f6f7f8;
-  border: 1px solid #d3d6da;
-  margin-bottom: 10px;
-}
-
-.answer {
-  padding: 10px;
-  background: #6aaa64;
-  color: white;
-  margin-bottom: 10px;
-  font-size: 18px;
-  border-radius: 4px;
-}
-
-footer {
-  border-top: 1px solid #d3d6da;
-  padding: 12px 16px;
-  margin-top: 24px;
-  font-size: 14px;
-  color: #6e6e6e;
+.header {
+  border-bottom: 1px solid #d3d6da;
 }
 
 .nav {
-  background: #ffffff;
+  background: white;
   border-bottom: 1px solid #d3d6da;
-  padding: 8px 16px;
+  padding: 10px 24px;
   position: relative;
 }
 
@@ -137,7 +128,7 @@ footer {
 }
 
 .board {
-  margin-bottom: 12px;
+  margin-bottom: 18px;
 }
 
 .row {
@@ -157,11 +148,29 @@ footer {
   font-weight: bold;
 }
 
+.correct {
+  background: #6aaa64;
+  border-color: #6aaa64;
+  color: white;
+}
+
+.present {
+  background: #c9b458;
+  border-color: #c9b458;
+  color: white;
+}
+
+.absent {
+  background: #787c7e;
+  border-color: #787c7e;
+  color: white;
+}
+
 .keypad {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-  margin: 12px 0;
+  margin: 18px 0;
 }
 
 .key {
@@ -189,24 +198,6 @@ footer {
   color: #6e6e6e;
 }
 
-.correct {
-  background: #6aaa64;
-  border-color: #6aaa64;
-  color: white;
-}
-
-.present {
-  background: #c9b458;
-  border-color: #c9b458;
-  color: white;
-}
-
-.absent {
-  background: #787c7e;
-  border-color: #787c7e;
-  color: white;
-}
-
 .key .tip {
   display: none;
   position: absolute;
@@ -227,34 +218,20 @@ footer {
   display: block;
 }
 
-@media (max-width: 600px) {
-  .navlinks {
-    display: none;
-  }
-
-  .menubtn {
-    display: block;
-    background: #d3d6da;
-    color: #121213;
-    border: none;
-    padding: 4px 10px;
-    margin: 0;
-  }
-
-  .tile {
-    width: 44px;
-    height: 44px;
-    font-size: 18px;
-  }
+.msg {
+  padding: 8px;
+  background: #f6f7f8;
+  border: 1px solid #d3d6da;
+  margin-bottom: 10px;
 }
 
-input[type="text"] {
-  display: block;
-  padding: 6px;
+.answer {
+  padding: 10px;
+  background: #6aaa64;
+  color: white;
   margin-bottom: 10px;
-  border: 1px solid #d3d6da;
-  width: 100%;
-  max-width: 260px;
+  font-size: 18px;
+  border-radius: 4px;
 }
 
 .parts {
@@ -282,7 +259,70 @@ input[type="text"] {
   font-size: 13px;
 }
 
-/* --- dark mode, these only apply when Settings has put theme="dark" on the page. */
+/* Word search */
+
+.grid {
+  display: grid;
+  gap: 3px;
+  max-width: 420px;
+  margin-bottom: 16px;
+}
+
+.cell {
+  aspect-ratio: 1;
+  border: 1px solid #d3d6da;
+  background: #f6f7f8;
+  color: #121213;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  border-radius: 4px;
+}
+
+.cell.picked {
+  background: #c9b458;
+  border-color: #c9b458;
+  color: white;
+}
+
+.cell.found {
+  background: #6aaa64;
+  border-color: #6aaa64;
+  color: white;
+}
+
+.wordlist {
+  list-style: none;
+}
+
+.wordlist li {
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.wordlist li.done {
+  text-decoration: line-through;
+  color: #6aaa64;
+}
+
+.chip {
+  border: 1px solid #d3d6da;
+  border-radius: 4px;
+  padding: 2px 5px;
+  margin: 0 1px;
+}
+
+footer {
+  border-top: 1px solid #d3d6da;
+  padding: 20px 24px;
+  margin-top: 40px;
+  font-size: 14px;
+  color: #6e6e6e;
+}
+
+/* Dark mode */
 
 [data-theme="dark"] body {
   background: #121213;
@@ -358,7 +398,17 @@ input[type="text"] {
   color: #a0a0a0;
 }
 
-/* - Larger text option - */
+[data-theme="dark"] .cell {
+  background: #1a1a1b;
+  color: #f5f5f5;
+  border-color: #3a3a3c;
+}
+
+[data-theme="dark"] .chip {
+  border-color: #3a3a3c;
+}
+
+/* Larger text */
 
 [data-text="large"] body {
   font-size: 19px;
@@ -376,67 +426,40 @@ input[type="text"] {
   font-size: 18px;
 }
 
-/* - Word search */
+/* Small screens */
 
-.grid {
-  display: grid;
-  gap: 3px;
-  max-width: 420px;
-  margin-bottom: 16px;
-}
+@media (max-width: 600px) {
+  main {
+    padding: 20px 14px 36px;
+  }
 
-.cell {
-  aspect-ratio: 1;
-  border: 1px solid #d3d6da;
-  background: #f6f7f8;
-  color: #121213;
-  font-size: 15px;
-  font-weight: bold;
-  cursor: pointer;
-  padding: 0;
-  margin: 0;
-  border-radius: 4px;
-}
+  .header,
+  .nav,
+  footer {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
 
-.cell.picked {
-  background: #c9b458;
-  border-color: #c9b458;
-  color: white;
-}
+  .box {
+    padding: 14px;
+  }
 
-.cell.found {
-  background: #6aaa64;
-  border-color: #6aaa64;
-  color: white;
-}
+  .navlinks {
+    display: none;
+  }
 
-.wordlist {
-  list-style: none;
-}
+  .menubtn {
+    display: block;
+    background: #d3d6da;
+    color: #121213;
+    border: none;
+    padding: 4px 10px;
+    margin: 0;
+  }
 
-.wordlist li {
-  margin-bottom: 8px;
-  font-size: 16px;
-}
-
-.wordlist li.done {
-  text-decoration: line-through;
-  color: #6aaa64;
-}
-
-.chip {
-  border: 1px solid #d3d6da;
-  border-radius: 4px;
-  padding: 2px 5px;
-  margin: 0 1px;
-}
-
-[data-theme="dark"] .cell {
-  background: #1a1a1b;
-  color: #f5f5f5;
-  border-color: #3a3a3c;
-}
-
-[data-theme="dark"] .chip {
-  border-color: #3a3a3c;
+  .tile {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
 }
