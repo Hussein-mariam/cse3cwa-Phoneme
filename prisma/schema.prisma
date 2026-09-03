@@ -1,0 +1,105 @@
+// Assessment 2 database schema.
+// Run `npx prisma migrate dev` after changing this file.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// The sound inventory shown on the keypad.
+model Phoneme {
+  id      Int    @id @default(autoincrement())
+  symbol  String @unique
+  letters String
+  example String
+
+  words WordPhoneme[]
+}
+
+// A named group of words, e.g. "Week 3 - th sounds".
+model WordList {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  words      Word[]
+  activities Activity[]
+}
+
+model Word {
+  id        Int      @id @default(autoincrement())
+  english   String
+  listId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  list     WordList      @relation(fields: [listId], references: [id], onDelete: Cascade)
+  phonemes WordPhoneme[]
+  targetOf Activity[]
+
+  @@unique([listId, english])
+}
+
+// One row per sound, in order. This is how a two-character symbol like tʃ
+// stays a single unit instead of being split into two letters.
+model WordPhoneme {
+  id        Int @id @default(autoincrement())
+  wordId    Int
+  phonemeId Int
+  position  Int
+
+  word    Word    @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  phoneme Phoneme @relation(fields: [phonemeId], references: [id])
+
+  @@unique([wordId, position])
+}
+
+// A saved builder configuration.
+model Activity {
+  id           Int          @id @default(autoincrement())
+  name         String
+  type         ActivityType
+  difficulty   Difficulty   @default(standard)
+  maxGuesses   Int          @default(6)
+  gridSize     Int          @default(10)
+  showHints    Boolean      @default(true)
+  showLetters  Boolean      @default(true)
+  showEnglish  Boolean      @default(true)
+  listId       Int
+  targetWordId Int?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  list       WordList        @relation(fields: [listId], references: [id], onDelete: Cascade)
+  targetWord Word?           @relation(fields: [targetWordId], references: [id], onDelete: SetNull)
+  logs       GenerationLog[]
+}
+
+// Every Generate click, successful or not. Feeds the Assessment 3 dashboard.
+model GenerationLog {
+  id         Int          @id @default(autoincrement())
+  activityId Int?
+  type       ActivityType
+  success    Boolean
+  message    String?
+  createdAt  DateTime     @default(now())
+
+  activity Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
+}
+
+enum ActivityType {
+  wordle
+  wordsearch
+}
+
+enum Difficulty {
+  easy
+  standard
+  hard
+}
