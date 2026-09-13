@@ -3,52 +3,43 @@
 import { useState } from "react";
 import Keypad from "@/components/Keypad";
 
-export default function AddWord({ onAdd, existing }) {
+// Lets a teacher type a spelling and tap the sounds. It does not talk to the
+// database itself - it hands the finished word to whichever page is using it,
+// and that page saves it. Keeps this component reusable.
+export default function AddWord({ phonemes, onAdd, busy }) {
   const [spelling, setSpelling] = useState("");
   const [parts, setParts] = useState([]);
   const [msg, setMsg] = useState("");
 
   function pick(symbol) {
-    const newParts = [...parts, symbol];
-
-    setParts(newParts);
+    setParts((row) => [...row, symbol]);
     setMsg("");
   }
 
   function back() {
-    const newParts = parts.slice(0, -1);
-
-    setParts(newParts);
+    setParts((row) => row.slice(0, -1));
   }
 
-  function add() {
+  async function add() {
     const name = spelling.trim().toLowerCase();
 
+    // The server checks all of this again. These messages are just so the
+    // teacher finds out before the request is sent.
     if (name === "") {
       setMsg("Type the English spelling first.");
       return;
     }
-
-    if (parts.length < 2) {
-      setMsg("Pick at least two phonemes.");
+    if (parts.length < 1) {
+      setMsg("Pick at least one sound.");
       return;
     }
 
-    const alreadyExists = existing.some(
-      (word) => word.word === name
-    );
+    const error = await onAdd({ english: name, phonemes: parts });
 
-    if (alreadyExists) {
-      setMsg(name + " is already in the list.");
+    if (error) {
+      setMsg(error);
       return;
     }
-
-    const newWord = {
-      word: name,
-      phonemes: parts
-    };
-
-    onAdd(newWord);
 
     setSpelling("");
     setParts([]);
@@ -57,49 +48,30 @@ export default function AddWord({ onAdd, existing }) {
 
   return (
     <div className="box">
-      <h3>Add your own word</h3>
+      <h3>Add a word</h3>
 
-      <label htmlFor="spelling">
-        English spelling
-      </label>
-
+      <label htmlFor="spelling">English spelling</label>
       <input
         id="spelling"
         type="text"
         value={spelling}
-        onChange={(event) =>
-          setSpelling(event.target.value)
-        }
+        onChange={(event) => setSpelling(event.target.value)}
         placeholder="for example: shop"
       />
 
-      <label>Phonemes</label>
-
+      <label>Sounds</label>
       <div className="parts">
-        {parts.length === 0
-          ? "Use the buttons below"
-          : "/" + parts.join(" ") + "/"}
+        {parts.length === 0 ? "Use the buttons below" : "/" + parts.join(" ") + "/"}
       </div>
 
-      <Keypad
-        onPick={pick}
-        keyStates={{}}
-        showLetters={true}
-      />
+      <Keypad phonemes={phonemes} onPick={pick} keyStates={{}} showLetters={true} />
 
-      {msg && (
-        <div className="msg">
-          {msg}
-        </div>
-      )}
+      {msg && <div className="msg">{msg}</div>}
 
-      <button onClick={add}>
-        Add word
+      <button onClick={add} disabled={busy}>
+        {busy ? "Saving..." : "Add word"}
       </button>
-
-      <button onClick={back}>
-        Delete phoneme
-      </button>
+      <button onClick={back}>Delete sound</button>
     </div>
   );
 }

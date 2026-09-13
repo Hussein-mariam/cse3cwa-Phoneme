@@ -1,44 +1,65 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-import { words } from "@/lib/words";
 import { score } from "@/lib/score";
-import { exportWordle } from "@/lib/exportWordle";
-
 import Grid from "@/components/Grid";
 import Keypad from "@/components/Keypad";
-import AddWord from "@/components/AddWord";
 
+// The builder now loads its words from the database instead of a file, and
+// saves the settings as a named activity that can be generated later.
 export default function WordlePage() {
-  const [extra, setExtra] = useState([]);
-  const [chosen, setChosen] = useState("thin");
+  // Loaded from the API.
+  const [phonemes, setPhonemes] = useState([]);
+  const [lists, setLists] = useState([]);
+  const [words, setWords] = useState([]);
 
+  // Settings the teacher controls.
+  const [listId, setListId] = useState(null);
+  const [chosen, setChosen] = useState(null);
   const [maxGuesses, setMaxGuesses] = useState(6);
   const [showLetters, setShowLetters] = useState(true);
+  const [activityName, setActivityName] = useState("My wordle");
 
+  // State for the preview game.
   const [current, setCurrent] = useState([]);
   const [guesses, setGuesses] = useState([]);
-
   const [keyStates, setKeyStates] = useState({});
   const [msg, setMsg] = useState("");
   const [over, setOver] = useState(false);
 
+  // Load the sounds and the lists once.
   useEffect(() => {
-    const savedWords =
-      localStorage.getItem("extraWords");
+    async function load() {
+      const phonemesRes = await fetch("/api/phonemes");
+      const listsRes = await fetch("/api/lists");
+      const loadedLists = await listsRes.json();
 
-    if (savedWords) {
-      setExtra(JSON.parse(savedWords));
+      setPhonemes(await phonemesRes.json());
+      setLists(loadedLists);
+
+      if (loadedLists.length > 0) {
+        setListId(loadedLists[0].id);
+      }
     }
+    load();
   }, []);
 
-  const allWords = [...words, ...extra];
+  // Whenever the chosen list changes, fetch its words.
+  useEffect(() => {
+    if (listId === null) {
+      return;
+    }
+    async function load() {
+      const res = await fetch("/api/words?listId=" + listId);
+      const loaded = await res.json();
+      setWords(loaded);
+      setChosen(loaded.length > 0 ? loaded[0].id : null);
+      reset();
+    }
+    load();
+  }, [listId]);
 
-  const word =
-    allWords.find(
-      (item) => item.word === chosen
-    ) || allWords[0];
+  const word = words.find((w) => w.id === chosen) || words[0];
 
   function reset() {
     setCurrent([]);
@@ -48,71 +69,12 @@ export default function WordlePage() {
     setOver(false);
   }
 
-  function addWord(newWord) {
-    const newExtraWords = [
-      ...extra,
-      newWord
-    ];
-
-    setExtra(newExtraWords);
-
-    localStorage.setItem(
-      "extraWords",
-      JSON.stringify(newExtraWords)
-    );
-
-    setChosen(newWord.word);
-
-    reset();
-  }
-
-  function removeWord(name) {
-    const newExtraWords = extra.filter(
-      (item) => item.word !== name
-    );
-
-    setExtra(newExtraWords);
-
-    localStorage.setItem(
-      "extraWords",
-      JSON.stringify(newExtraWords)
-    );
-
-    if (chosen === name) {
-      setChosen(words[0].word);
-    }
-
-    reset();
-  }
-
-  function changeWord(event) {
-    setChosen(event.target.value);
-    reset();
-  }
-
-  function changeGuesses(event) {
-    const number = Number(event.target.value);
-
-    setMaxGuesses(number);
-
-    reset();
-  }
-
   function pick(symbol) {
-    if (over) {
+    if (over || !word || current.length >= word.phonemes.length) {
       return;
     }
-
-    if (current.length >= word.phonemes.length) {
-      return;
-    }
-
-    const newCurrent = [
-      ...current,
-      symbol
-    ];
-
-    setCurrent(newCurrent);
+    // The arrow function makes sure fast clicks do not lose a phoneme.
+    setCurrent((row) => [...row, symbol]);
     setMsg("");
   }
 
@@ -120,70 +82,37 @@ export default function WordlePage() {
     if (over) {
       return;
     }
-
-    const newCurrent =
-      current.slice(0, -1);
-
-    setCurrent(newCurrent);
+    setCurrent((row) => row.slice(0, -1));
   }
 
   function check() {
-    if (over) {
+    if (over || !word) {
       return;
     }
 
-    if (
-      current.length <
-      word.phonemes.length
-    ) {
-      const left =
-        word.phonemes.length -
-        current.length;
-
-      setMsg(
-        "Pick " +
-        left +
-        " more phoneme(s)."
-      );
-
+    if (current.length < word.phonemes.length) {
+      const left = word.phonemes.length - current.length;
+      setMsg("Pick " + left + " more sound(s).");
       return;
     }
 
-    const result = score(
-      current,
-      word.phonemes
-    );
+    const result = score(current, word.phonemes);
+    const played = [...guesses, { symbols: current, result: result }];
 
-    const newGuess = {
-      symbols: current,
-      result: result
-    };
-
-    const newGuesses = [
-      ...guesses,
-      newGuess
-    ];
-
-    const newKeyStates = {
-      ...keyStates
-    };
-
+    // Colour the keypad, but never downgrade a key that is already green.
+    const states = { ...keyStates };
     for (let i = 0; i < current.length; i++) {
-      if (
-        newKeyStates[current[i]] !==
-        "correct"
-      ) {
-        newKeyStates[current[i]] =
-          result[i];
+      if (states[current[i]] !== "correct") {
+        states[current[i]] = result[i];
       }
     }
 
-    setGuesses(newGuesses);
-    setKeyStates(newKeyStates);
+    setGuesses(played);
+    setKeyStates(states);
     setCurrent([]);
 
+    // Won only if every single tile came back correct.
     let win = true;
-
     for (let i = 0; i < result.length; i++) {
       if (result[i] !== "correct") {
         win = false;
@@ -193,9 +122,7 @@ export default function WordlePage() {
     if (win) {
       setOver(true);
       setMsg("Correct!");
-    } else if (
-      newGuesses.length >= maxGuesses
-    ) {
+    } else if (played.length >= maxGuesses) {
       setOver(true);
       setMsg("Out of guesses.");
     } else {
@@ -203,34 +130,47 @@ export default function WordlePage() {
     }
   }
 
-  function download() {
-    const html = exportWordle(
-      word,
-      maxGuesses,
-      showLetters
-    );
+  // Saves the settings, then asks the server to build the file from them.
+  async function generate() {
+    if (!word) {
+      setMsg("Pick a word first.");
+      return;
+    }
 
-    const blob = new Blob(
-      [html],
-      { type: "text/html" }
-    );
+    const res = await fetch("/api/activities", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: activityName,
+        type: "wordle",
+        listId: listId,
+        targetWordId: word.id,
+        maxGuesses: maxGuesses,
+        showLetters: showLetters,
+      }),
+    });
+    const activity = await res.json();
 
-    const url =
-      URL.createObjectURL(blob);
+    if (!res.ok) {
+      setMsg(activity.error);
+      return;
+    }
 
-    const link =
-      document.createElement("a");
-
-    link.href = url;
-    link.download =
-      "phoneme-wordle.html";
-
+    // Clicking a link downloads the file without leaving this page.
+    const link = document.createElement("a");
+    link.href = "/api/activities/" + activity.id + "/download";
     link.click();
+    setMsg("Saved as \"" + activity.name + "\" and generated.");
+  }
 
-    URL.revokeObjectURL(url);
-
-    setMsg(
-      "Downloaded phoneme-wordle.html"
+  if (lists.length === 0) {
+    return (
+      <div>
+        <h2>Wordle Builder</h2>
+        <div className="msg">
+          There are no word lists yet. Make one on the Word Lists page first.
+        </div>
+      </div>
     );
   }
 
@@ -241,47 +181,48 @@ export default function WordlePage() {
       <div className="box">
         <h3>Settings</h3>
 
-        <label htmlFor="word">
-          Target word
-        </label>
-
+        <label htmlFor="list">Word list</label>
         <select
-          id="word"
-          value={chosen}
-          onChange={changeWord}
+          id="list"
+          value={listId ?? ""}
+          onChange={(event) => setListId(Number(event.target.value))}
         >
-          {allWords.map((item) => (
-            <option
-              key={item.word}
-              value={item.word}
-            >
-              {item.word} - /
-              {item.phonemes.join(" ")}
-              /
+          {lists.map((list) => (
+            <option key={list.id} value={list.id}>
+              {list.name} ({list._count.words} words)
             </option>
           ))}
         </select>
 
-        <label htmlFor="guesses">
-          Number of guesses
-        </label>
+        <label htmlFor="word">Target word</label>
+        <select
+          id="word"
+          value={chosen ?? ""}
+          onChange={(event) => {
+            setChosen(Number(event.target.value));
+            reset();
+          }}
+        >
+          {words.map((w) => (
+            <option key={w.id} value={w.id}>
+              {w.english} - /{w.phonemes.join(" ")}/
+            </option>
+          ))}
+        </select>
 
+        <label htmlFor="guesses">Number of guesses</label>
         <select
           id="guesses"
           value={maxGuesses}
-          onChange={changeGuesses}
+          onChange={(event) => {
+            // A select always gives back text, so this turns "6" into 6.
+            setMaxGuesses(Number(event.target.value));
+            reset();
+          }}
         >
-          <option value={4}>
-            4 (hard)
-          </option>
-
-          <option value={6}>
-            6 (normal)
-          </option>
-
-          <option value={8}>
-            8 (easy)
-          </option>
+          <option value={4}>4 (hard)</option>
+          <option value={6}>6 (normal)</option>
+          <option value={8}>8 (easy)</option>
         </select>
 
         <label htmlFor="letters">
@@ -289,90 +230,57 @@ export default function WordlePage() {
             id="letters"
             type="checkbox"
             checked={showLetters}
-            onChange={(event) =>
-              setShowLetters(
-                event.target.checked
-              )
-            }
+            onChange={(event) => setShowLetters(event.target.checked)}
           />
-
           Show English letters on the keys
         </label>
 
-        <button onClick={download}>
-          Generate
-        </button>
+        <label htmlFor="actname">Save this activity as</label>
+        <input
+          id="actname"
+          type="text"
+          value={activityName}
+          onChange={(event) => setActivityName(event.target.value)}
+        />
+
+        <button onClick={generate}>Save and generate</button>
       </div>
-
-      <AddWord
-        onAdd={addWord}
-        existing={allWords}
-      />
-
-      {extra.length > 0 && (
-        <div className="box">
-          <h3>Your words</h3>
-
-          <ul className="yourwords">
-            {extra.map((item) => (
-              <li key={item.word}>
-                {item.word} - /
-                {item.phonemes.join(" ")}
-                /
-
-                <button
-                  onClick={() =>
-                    removeWord(item.word)
-                  }
-                >
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       <div className="box">
         <h3>Preview</h3>
 
-        <Grid
-          rows={maxGuesses}
-          cols={word.phonemes.length}
-          guesses={guesses}
-          current={current}
-        />
+        {!word && <p>This list has no words in it yet.</p>}
 
-        {msg && (
-          <div className="msg">
-            {msg}
-          </div>
+        {word && (
+          <>
+            {/* the board size comes from the word stored in the database */}
+            <Grid
+              rows={maxGuesses}
+              cols={word.phonemes.length}
+              guesses={guesses}
+              current={current}
+            />
+
+            {msg && <div className="msg">{msg}</div>}
+
+            {over && (
+              <div className="answer">
+                /{word.phonemes.join(" ")}/ = <b>{word.english}</b>
+              </div>
+            )}
+
+            <Keypad
+              phonemes={phonemes}
+              onPick={pick}
+              keyStates={keyStates}
+              showLetters={showLetters}
+            />
+
+            <button onClick={check}>Check</button>
+            <button onClick={back}>Delete</button>
+            <button onClick={reset}>Restart</button>
+          </>
         )}
-
-        {over && (
-          <div className="answer">
-            /{word.phonemes.join(" ")}/ ={" "}
-            <b>{word.word}</b>
-          </div>
-        )}
-
-        <Keypad
-          onPick={pick}
-          keyStates={keyStates}
-          showLetters={showLetters}
-        />
-
-        <button onClick={check}>
-          Check
-        </button>
-
-        <button onClick={back}>
-          Delete
-        </button>
-
-        <button onClick={reset}>
-          Restart
-        </button>
       </div>
     </div>
   );
