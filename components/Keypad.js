@@ -1,36 +1,31 @@
-import { phonemes, getHint } from "@/lib/phonemes";
+import { hintFor } from "@/lib/hint";
 
-export default function Keypad({
-  onPick,
-  keyStates,
-  showLetters
-}) {
+// The phoneme buttons. The list now arrives as a prop, because it is loaded
+// from the database rather than read from a file.
+export default function Keypad({ phonemes, onPick, keyStates, showLetters }) {
+  if (!phonemes || phonemes.length === 0) {
+    return <p>Loading the sounds...</p>;
+  }
+
   return (
     <div className="keypad">
-      {phonemes.map((phoneme) => {
+      {phonemes.map((p) => {
+        // keyStates remembers the colour this phoneme got in an earlier guess.
         let className = "key";
-
-        if (keyStates[phoneme.symbol]) {
-          className = "key " + keyStates[phoneme.symbol];
+        if (keyStates && keyStates[p.symbol]) {
+          className = "key " + keyStates[p.symbol];
         }
 
         return (
           <button
-            key={phoneme.symbol}
+            key={p.symbol}
             className={className}
-            onClick={() => onPick(phoneme.symbol)}
+            onClick={() => onPick(p.symbol)}
           >
-            {phoneme.symbol}
-
-            {showLetters && (
-              <span className="small">
-                {phoneme.letters}
-              </span>
-            )}
-
-            <span className="tip">
-              {getHint(phoneme.symbol)}
-            </span>
+            {p.symbol}
+            {showLetters && <span className="small">{p.letters}</span>}
+            {/* the hint box, hidden by CSS until you hover or tab onto the key */}
+            <span className="tip">{hintFor(p)}</span>
           </button>
         );
       })}
