@@ -9,7 +9,7 @@ import "dotenv/config";
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
-const lists: { name: string; description: string; words: { english: string; phonemes: string[] }[] }[] = [
+const lists = [
   {
     name: "Three sounds",
     description: "Short words to start with - one sound per letter, mostly.",
@@ -72,10 +72,12 @@ async function main() {
     });
 
     for (const word of list.words) {
-      const exists = await prisma.word.findUnique({
-        where: { listId_english: { listId: saved.id, english: word.english } },
+      const exists = await prisma.word.findFirst({
+        where: { listId: saved.id, english: word.english },
       });
-      if (exists) continue;
+      if (exists) {
+        continue;
+      }
 
       // Each sound becomes its own row, with its position in the word.
       await prisma.word.create({
@@ -83,9 +85,9 @@ async function main() {
           english: word.english,
           listId: saved.id,
           phonemes: {
-            create: word.phonemes.map((symbol, position) => ({
-              position,
-              phoneme: { connect: { symbol } },
+            create: word.phonemes.map((symbol, i) => ({
+              position: i,
+              phoneme: { connect: { symbol: symbol } },
             })),
           },
         },
@@ -98,10 +100,11 @@ async function main() {
   console.log("word sounds:", await prisma.wordPhoneme.count());
 }
 
+// Run it. If anything fails, print the error and exit with a failure code so
+// Docker's startup stops instead of starting the app with no data.
 main()
-  .then(() => prisma.$disconnect())
-  .catch(async (error) => {
+  .catch((error) => {
     console.error(error);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+    process.exitCode = 1;
+  })
+  .finally(() => prisma.$disconnect());

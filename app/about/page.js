@@ -24,8 +24,10 @@ export default function AboutPage() {
         </p>
 
         <p>
-          Assessment 1 is frontend only. There is no
-          database.
+          The word lists, the sounds and the saved
+          activities are stored in a database, so a
+          teacher can come back and generate the same
+          activity again later.
         </p>
       </div>
 
@@ -35,8 +37,9 @@ export default function AboutPage() {
         <p>
           Makes a Wordle game where every tile is a
           phoneme instead of a letter. The teacher
-          picks a word, chooses how many guesses
-          students get, and can add their own words
+          picks a word from one of their lists and
+          chooses how many guesses students get. New
+          words are added on the Word Lists page
           using the phoneme keypad. Green means it
           is in the right place, yellow means
           it is in the word but somewhere else, and

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { makeGrid, getPath } from "@/lib/wordsearch";
-import { hintFor, findPhoneme } from "@/lib/hint";
+import { hintFor } from "@/lib/hint";
 
 // The word search is now built from a list stored in the database.
 export default function WordSearchPage() {
@@ -263,7 +263,7 @@ export default function WordSearchPage() {
                     <span
                       key={i}
                       className="chip"
-                      title={hintFor(findPhoneme(phonemes, symbol))}
+                      title={hintFor(phonemes.find((sound) => sound.symbol === symbol))}
                     >
                       {symbol}
                     </span>

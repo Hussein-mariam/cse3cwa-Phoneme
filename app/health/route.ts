@@ -1,21 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// The assessment asks for /health to return 200 OK.
-// It also pings the database, so a green result means the whole stack is up,
-// not just that Next.js is running.
+// GET /health - the assessment asks for this to return 200.
+// It runs a tiny query too, so "ok" means the database is up as well,
+// not just the website.
 export async function GET() {
   try {
     await prisma.$queryRaw`SELECT 1`;
-    return NextResponse.json({
-      status: "ok",
-      database: "connected",
-      time: new Date().toISOString(),
-    });
+    return NextResponse.json({ status: "ok", database: "connected" });
   } catch {
-    return NextResponse.json(
-      { status: "error", database: "unreachable" },
-      { status: 503 }
-    );
+    // 503 means "a service this depends on is down".
+    return NextResponse.json({ status: "error", database: "unreachable" }, { status: 503 });
   }
 }

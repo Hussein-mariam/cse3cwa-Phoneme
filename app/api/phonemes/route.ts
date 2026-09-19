@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// The sound inventory. The keypad reads this instead of a file.
+// GET /api/phonemes - every sound. The keypad is built from this.
 export async function GET() {
   try {
     const phonemes = await prisma.phoneme.findMany({ orderBy: { id: "asc" } });
     return NextResponse.json(phonemes);
   } catch {
-    return NextResponse.json({ error: "Could not load phonemes." }, { status: 500 });
+    return NextResponse.json({ error: "Could not load the phonemes." }, { status: 500 });
   }
 }

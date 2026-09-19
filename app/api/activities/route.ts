@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { parseId, validateActivity } from "@/lib/validate";
+import { checkActivity } from "@/lib/validate";
 
-// GET /api/activities - every saved configuration.
+// GET /api/activities - every saved activity, newest first.
 export async function GET() {
   try {
     const activities = await prisma.activity.findMany({
       orderBy: { updatedAt: "desc" },
-      include: {
-        list: { select: { id: true, name: true, _count: { select: { words: true } } } },
-        targetWord: { select: { id: true, english: true } },
-      },
+      include: { list: true },
     });
     return NextResponse.json(activities);
   } catch {
@@ -18,7 +15,7 @@ export async function GET() {
   }
 }
 
-// POST /api/activities - save the current builder settings under a name.
+// POST /api/activities - save the builder settings under a name.
 export async function POST(request: Request) {
   let body;
   try {
@@ -27,14 +24,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "The request body was not valid JSON." }, { status: 400 });
   }
 
-  const check = validateActivity(body);
-  if (!check.ok) {
-    return NextResponse.json({ error: check.error }, { status: 400 });
+  const error = checkActivity(body);
+  if (error) {
+    return NextResponse.json({ error: error }, { status: 400 });
   }
 
-  const listId = parseId(String(body.listId));
   const list = await prisma.wordList.findUnique({
-    where: { id: listId as number },
+    where: { id: body.listId },
     include: { _count: { select: { words: true } } },
   });
   if (!list) {
@@ -47,37 +43,32 @@ export async function POST(request: Request) {
     );
   }
 
-  // A wordle needs one word to guess; it has to belong to the chosen list.
+  // A wordle names the word to guess. It has to be a word from the chosen list.
   let targetWordId: number | null = null;
-  if (body.type === "wordle" && body.targetWordId !== undefined && body.targetWordId !== null) {
-    targetWordId = parseId(String(body.targetWordId));
-    const word = await prisma.word.findUnique({ where: { id: targetWordId as number } });
+  if (body.targetWordId) {
+    const word = await prisma.word.findFirst({
+      where: { id: body.targetWordId, listId: body.listId },
+    });
     if (!word) {
-      return NextResponse.json({ error: "No word with that id." }, { status: 404 });
+      return NextResponse.json({ error: "The chosen word is not in that word list." }, { status: 400 });
     }
-    if (word.listId !== listId) {
-      return NextResponse.json(
-        { error: "The chosen word is not in that word list." },
-        { status: 400 }
-      );
-    }
+    targetWordId = word.id;
   }
 
+  // Anything left out (for example gridSize on a wordle) gets the default
+  // from the schema.
   try {
     const activity = await prisma.activity.create({
       data: {
-        name: String(body.name).trim(),
-        type: body.type as "wordle" | "wordsearch",
-        difficulty: (body.difficulty ?? "standard") as "easy" | "standard" | "hard",
-        maxGuesses: Number(body.maxGuesses ?? 6),
-        gridSize: Number(body.gridSize ?? 10),
-        showHints: body.showHints !== false,
-        showLetters: body.showLetters !== false,
-        showEnglish: body.showEnglish !== false,
-        listId: listId as number,
-        targetWordId,
+        name: body.name.trim(),
+        type: body.type,
+        listId: body.listId,
+        targetWordId: targetWordId,
+        maxGuesses: body.maxGuesses,
+        gridSize: body.gridSize,
+        showLetters: body.showLetters,
+        showEnglish: body.showEnglish,
       },
-      include: { list: { select: { id: true, name: true } } },
     });
     return NextResponse.json(activity, { status: 201 });
   } catch {

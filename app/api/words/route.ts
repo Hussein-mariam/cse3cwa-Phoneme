@@ -1,35 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { parseId, validateWord } from "@/lib/validate";
+import { checkWord, parseId } from "@/lib/validate";
+import { getWords, soundRows } from "@/lib/wordsDb";
 
-// Every word's sounds are stored as separate rows, so this turns them back
-// into a plain array like ["t\u0283", "\u026a", "n"].
-function flatten(word: {
-  id: number;
-  english: string;
-  listId: number;
-  phonemes: { phoneme: { symbol: string } }[];
-}) {
-  return {
-    id: word.id,
-    english: word.english,
-    listId: word.listId,
-    phonemes: word.phonemes.map((p) => p.phoneme.symbol),
-  };
-}
-
-// GET /api/words          - all words
-// GET /api/words?listId=2 - just that list's words
+// GET /api/words?listId=2 - the words in one list.
 export async function GET(request: Request) {
-  const listId = parseId(new URL(request.url).searchParams.get("listId") ?? undefined);
+  const url = new URL(request.url);
+  const listId = parseId(url.searchParams.get("listId") || "");
+  if (listId === null) {
+    return NextResponse.json({ error: "Add ?listId= to say which list." }, { status: 400 });
+  }
 
   try {
-    const words = await prisma.word.findMany({
-      where: listId ? { listId } : undefined,
-      orderBy: { english: "asc" },
-      include: { phonemes: { orderBy: { position: "asc" }, include: { phoneme: true } } },
-    });
-    return NextResponse.json(words.map(flatten));
+    const words = await getWords({ listId: listId });
+    return NextResponse.json(words);
   } catch {
     return NextResponse.json({ error: "Could not load the words." }, { status: 500 });
   }
@@ -54,36 +38,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No list with that id." }, { status: 404 });
   }
 
-  const known = (await prisma.phoneme.findMany({ select: { symbol: true } })).map((p) => p.symbol);
-  const check = validateWord(body.english, body.phonemes, known);
-  if (!check.ok) {
-    return NextResponse.json({ error: check.error }, { status: 400 });
+  // Get every symbol the database knows, so the word can be checked against them.
+  const allPhonemes = await prisma.phoneme.findMany();
+  const known = allPhonemes.map((p) => p.symbol);
+
+  const error = checkWord(body.english, body.phonemes, known);
+  if (error) {
+    return NextResponse.json({ error: error }, { status: 400 });
   }
 
-  const english = String(body.english).trim().toLowerCase();
+  const english = body.english.trim().toLowerCase();
 
-  const clash = await prisma.word.findUnique({
-    where: { listId_english: { listId, english } },
-  });
+  const clash = await prisma.word.findFirst({ where: { listId: listId, english: english } });
   if (clash) {
-    return NextResponse.json({ error: `"${english}" is already in this list.` }, { status: 409 });
+    return NextResponse.json({ error: english + " is already in this list." }, { status: 409 });
   }
 
   try {
+    // The word and its sound rows are saved in one go, so if anything fails
+    // nothing is saved - there is never a word with half its sounds.
     const word = await prisma.word.create({
       data: {
-        english,
-        listId,
-        phonemes: {
-          create: (body.phonemes as string[]).map((symbol, position) => ({
-            position,
-            phoneme: { connect: { symbol } },
-          })),
-        },
+        english: english,
+        listId: listId,
+        phonemes: { create: soundRows(body.phonemes) },
       },
-      include: { phonemes: { orderBy: { position: "asc" }, include: { phoneme: true } } },
     });
-    return NextResponse.json(flatten(word), { status: 201 });
+    const saved = await getWords({ id: word.id });
+    return NextResponse.json(saved[0], { status: 201 });
   } catch {
     return NextResponse.json({ error: "Could not save the word." }, { status: 500 });
   }

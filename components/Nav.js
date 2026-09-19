@@ -20,7 +20,11 @@ export default function Nav() {
       </div>
 
       {/* this button is hidden on desktop by the media query in globals.css */}
-      <button className="menubtn" onClick={() => setOpen(!open)}>
+      <button
+        className="menubtn"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+      >
         Menu
       </button>
 

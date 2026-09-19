@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { validateListName } from "@/lib/validate";
+import { checkListName } from "@/lib/validate";
 
 // GET /api/lists - every word list, with how many words each has.
 export async function GET() {
@@ -15,7 +15,7 @@ export async function GET() {
   }
 }
 
-// POST /api/lists - create a list.
+// POST /api/lists - make a new list.
 export async function POST(request: Request) {
   let body;
   try {
@@ -24,23 +24,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "The request body was not valid JSON." }, { status: 400 });
   }
 
-  const check = validateListName(body.name);
-  if (!check.ok) {
-    return NextResponse.json({ error: check.error }, { status: 400 });
+  const error = checkListName(body.name);
+  if (error) {
+    return NextResponse.json({ error: error }, { status: 400 });
   }
 
-  const existing = await prisma.wordList.findUnique({ where: { name: body.name.trim() } });
+  const name = body.name.trim();
+
+  // 409 means "conflict" - the name is already taken.
+  const existing = await prisma.wordList.findUnique({ where: { name: name } });
   if (existing) {
     return NextResponse.json({ error: "A list with that name already exists." }, { status: 409 });
   }
 
   try {
-    const list = await prisma.wordList.create({
-      data: {
-        name: body.name.trim(),
-        description: typeof body.description === "string" ? body.description.trim() : null,
-      },
-    });
+    const list = await prisma.wordList.create({ data: { name: name } });
     return NextResponse.json(list, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Could not create the list." }, { status: 500 });

@@ -2,20 +2,15 @@
 
 import { useEffect, useState } from "react";
 
-// Every saved builder configuration. Each one can be generated again at any
-// time, because the settings and the words are both in the database.
+// Every activity saved from the Wordle and Word Search pages.
 export default function ActivitiesPage() {
   const [activities, setActivities] = useState([]);
-  const [lists, setLists] = useState([]);
-  const [editing, setEditing] = useState(null);
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
     async function load() {
-      const actRes = await fetch("/api/activities");
-      const listRes = await fetch("/api/lists");
-      setActivities(await actRes.json());
-      setLists(await listRes.json());
+      const res = await fetch("/api/activities");
+      setActivities(await res.json());
     }
     load();
   }, []);
@@ -25,33 +20,32 @@ export default function ActivitiesPage() {
     setActivities(await res.json());
   }
 
-  async function saveEdit() {
-    const res = await fetch("/api/activities/" + editing.id, {
+  // Saves the activity again with some of its settings changed.
+  async function update(activity, changes) {
+    const res = await fetch("/api/activities/" + activity.id, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: editing.name,
-        type: editing.type,
-        listId: editing.listId,
-        maxGuesses: editing.maxGuesses,
-        gridSize: editing.gridSize,
-        difficulty: editing.difficulty,
-        showHints: editing.showHints,
-        showLetters: editing.showLetters,
-        showEnglish: editing.showEnglish,
-        targetWordId: editing.targetWordId,
-      }),
+      body: JSON.stringify({ ...activity, ...changes }),
     });
     const data = await res.json();
 
-    if (!res.ok) {
-      setMsg(data.error);
+    setMsg(res.ok ? "Saved " + data.name + "." : data.error);
+    await refresh();
+  }
+
+  // Clicking a link downloads the file without leaving this page.
+  function generate(activity) {
+    const link = document.createElement("a");
+    link.href = "/api/activities/" + activity.id + "/download";
+    link.click();
+  }
+
+  async function rename(activity) {
+    const name = window.prompt("New name for this activity:", activity.name);
+    if (name === null) {
       return;
     }
-
-    setMsg("Saved " + data.name + ".");
-    setEditing(null);
-    await refresh();
+    await update(activity, { name: name });
   }
 
   async function remove(activity) {
@@ -70,105 +64,37 @@ export default function ActivitiesPage() {
     <div>
       <h2>Saved Activities</h2>
       <p>
-        These are the configurations stored in the database. Generating one
-        rebuilds the HTML file from the words as they are right now.
+        Generate builds the file again from the words in the database, so it
+        always uses the list as it is right now.
       </p>
 
       {msg && <div className="msg">{msg}</div>}
 
       {activities.length === 0 && (
-        <div className="box">
-          <p>
-            Nothing saved yet. Build one on the Wordle or Word Search page and
-            press Save and generate.
-          </p>
-        </div>
+        <p>Nothing saved yet. Use Save and generate on the Wordle or Word Search page.</p>
       )}
 
-      {activities.map((activity) => (
-        <div className="box" key={activity.id}>
-          <h3>{activity.name}</h3>
-
-          <p>
-            {activity.type === "wordle" ? "Wordle" : "Word search"} using{" "}
-            <strong>{activity.list.name}</strong> ({activity.list._count.words} words)
-            {activity.type === "wordle"
-              ? " - " + activity.maxGuesses + " guesses"
-              : " - " + activity.gridSize + " x " + activity.gridSize + " grid"}
-            {activity.targetWord ? " - answer: " + activity.targetWord.english : ""}
-          </p>
-
-          <a className="btnlink" href={"/api/activities/" + activity.id + "/download"}>
-            Generate
-          </a>
-          <button onClick={() => setEditing({ ...activity })}>Edit</button>
-          <button onClick={() => remove(activity)}>Delete</button>
-        </div>
-      ))}
-
-      {editing && (
-        <div className="box">
-          <h3>Editing {editing.name}</h3>
-
-          <label htmlFor="name">Name</label>
-          <input
-            id="name"
-            type="text"
-            value={editing.name}
-            onChange={(event) => setEditing({ ...editing, name: event.target.value })}
-          />
-
-          <label htmlFor="elist">Word list</label>
-          <select
-            id="elist"
-            value={editing.listId}
-            onChange={(event) =>
-              setEditing({ ...editing, listId: Number(event.target.value) })
-            }
-          >
-            {lists.map((list) => (
-              <option key={list.id} value={list.id}>
-                {list.name}
-              </option>
-            ))}
-          </select>
-
-          {editing.type === "wordle" ? (
-            <>
-              <label htmlFor="eguesses">Number of guesses</label>
-              <select
-                id="eguesses"
-                value={editing.maxGuesses}
-                onChange={(event) =>
-                  setEditing({ ...editing, maxGuesses: Number(event.target.value) })
-                }
-              >
-                <option value={4}>4 (hard)</option>
-                <option value={6}>6 (normal)</option>
-                <option value={8}>8 (easy)</option>
-              </select>
-            </>
-          ) : (
-            <>
-              <label htmlFor="esize">Grid size</label>
-              <select
-                id="esize"
-                value={editing.gridSize}
-                onChange={(event) =>
-                  setEditing({ ...editing, gridSize: Number(event.target.value) })
-                }
-              >
-                <option value={8}>8 x 8</option>
-                <option value={10}>10 x 10</option>
-                <option value={12}>12 x 12</option>
-              </select>
-            </>
-          )}
-
-          <button onClick={saveEdit}>Save changes</button>
-          <button onClick={() => setEditing(null)}>Cancel</button>
-        </div>
-      )}
+      <ul className="wordlist">
+        {activities.map((activity) => (
+          <li key={activity.id}>
+            <strong>{activity.name}</strong> -{" "}
+            {activity.type === "wordle" ? "Wordle" : "Word search"} from{" "}
+            {activity.list.name}
+            <button onClick={() => generate(activity)}>Generate</button>
+            <button onClick={() => rename(activity)}>Rename</button>
+            {activity.type === "wordle" ? (
+              <button onClick={() => update(activity, { showLetters: !activity.showLetters })}>
+                {activity.showLetters ? "Turn letters off" : "Turn letters on"}
+              </button>
+            ) : (
+              <button onClick={() => update(activity, { showEnglish: !activity.showEnglish })}>
+                {activity.showEnglish ? "Turn English off" : "Turn English on"}
+              </button>
+            )}
+            <button onClick={() => remove(activity)}>Delete</button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

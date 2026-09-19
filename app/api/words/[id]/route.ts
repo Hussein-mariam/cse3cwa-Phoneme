@@ -1,44 +1,30 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { parseId, validateWord } from "@/lib/validate";
+import { checkWord, parseId } from "@/lib/validate";
+import { getWords, soundRows } from "@/lib/wordsDb";
 
+// In Next 16 the id from the URL arrives as a promise, so it has to be awaited.
 type Params = { params: Promise<{ id: string }> };
 
-const withSounds = {
-  phonemes: { orderBy: { position: "asc" as const }, include: { phoneme: true } },
-};
-
-function flatten(word: {
-  id: number;
-  english: string;
-  listId: number;
-  phonemes: { phoneme: { symbol: string } }[];
-}) {
-  return {
-    id: word.id,
-    english: word.english,
-    listId: word.listId,
-    phonemes: word.phonemes.map((p) => p.phoneme.symbol),
-  };
-}
-
-// GET /api/words/5
+// GET /api/words/5 - one word and its sounds.
 export async function GET(request: Request, { params }: Params) {
-  const id = parseId((await params).id);
+  const p = await params;
+  const id = parseId(p.id);
   if (id === null) {
     return NextResponse.json({ error: "That is not a valid word id." }, { status: 400 });
   }
 
-  const word = await prisma.word.findUnique({ where: { id }, include: withSounds });
-  if (!word) {
+  const found = await getWords({ id: id });
+  if (found.length === 0) {
     return NextResponse.json({ error: "No word with that id." }, { status: 404 });
   }
-  return NextResponse.json(flatten(word));
+  return NextResponse.json(found[0]);
 }
 
 // PUT /api/words/5 - change the spelling and/or the sounds.
 export async function PUT(request: Request, { params }: Params) {
-  const id = parseId((await params).id);
+  const p = await params;
+  const id = parseId(p.id);
   if (id === null) {
     return NextResponse.json({ error: "That is not a valid word id." }, { status: 400 });
   }
@@ -50,57 +36,54 @@ export async function PUT(request: Request, { params }: Params) {
     return NextResponse.json({ error: "The request body was not valid JSON." }, { status: 400 });
   }
 
-  const word = await prisma.word.findUnique({ where: { id } });
+  const word = await prisma.word.findUnique({ where: { id: id } });
   if (!word) {
     return NextResponse.json({ error: "No word with that id." }, { status: 404 });
   }
 
-  const known = (await prisma.phoneme.findMany({ select: { symbol: true } })).map((p) => p.symbol);
-  const check = validateWord(body.english, body.phonemes, known);
-  if (!check.ok) {
-    return NextResponse.json({ error: check.error }, { status: 400 });
+  const allPhonemes = await prisma.phoneme.findMany();
+  const known = allPhonemes.map((p) => p.symbol);
+
+  const error = checkWord(body.english, body.phonemes, known);
+  if (error) {
+    return NextResponse.json({ error: error }, { status: 400 });
   }
 
-  const english = String(body.english).trim().toLowerCase();
+  const english = body.english.trim().toLowerCase();
 
-  const clash = await prisma.word.findUnique({
-    where: { listId_english: { listId: word.listId, english } },
-  });
+  // Another word in the same list with this spelling is a clash. This word is fine.
+  const clash = await prisma.word.findFirst({ where: { listId: word.listId, english: english } });
   if (clash && clash.id !== id) {
-    return NextResponse.json({ error: `"${english}" is already in this list.` }, { status: 409 });
+    return NextResponse.json({ error: english + " is already in this list." }, { status: 409 });
   }
 
-  // Replacing the sounds is simpler than working out which ones changed.
-  const updated = await prisma.word.update({
-    where: { id },
+  // Deleting the old sound rows and saving the new ones is simpler than
+  // working out which sounds changed.
+  await prisma.word.update({
+    where: { id: id },
     data: {
-      english,
-      phonemes: {
-        deleteMany: {},
-        create: (body.phonemes as string[]).map((symbol, position) => ({
-          position,
-          phoneme: { connect: { symbol } },
-        })),
-      },
+      english: english,
+      phonemes: { deleteMany: {}, create: soundRows(body.phonemes) },
     },
-    include: withSounds,
   });
 
-  return NextResponse.json(flatten(updated));
+  const saved = await getWords({ id: id });
+  return NextResponse.json(saved[0]);
 }
 
-// DELETE /api/words/5
+// DELETE /api/words/5 - its sound rows are deleted with it (onDelete: Cascade).
 export async function DELETE(request: Request, { params }: Params) {
-  const id = parseId((await params).id);
+  const p = await params;
+  const id = parseId(p.id);
   if (id === null) {
     return NextResponse.json({ error: "That is not a valid word id." }, { status: 400 });
   }
 
-  const word = await prisma.word.findUnique({ where: { id } });
+  const word = await prisma.word.findUnique({ where: { id: id } });
   if (!word) {
     return NextResponse.json({ error: "No word with that id." }, { status: 404 });
   }
 
-  await prisma.word.delete({ where: { id } });
+  await prisma.word.delete({ where: { id: id } });
   return NextResponse.json({ deleted: id });
 }

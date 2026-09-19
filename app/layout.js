@@ -15,7 +15,7 @@ export default function RootLayout({ children }) {
         <Theme />
 
         <div className="header">
-          <h1>Assessment 1 - Phoneme Activity Builder</h1>
+          <h1>Assessment 2 - Phoneme Activity Builder</h1>
         </div>
 
         <Nav />

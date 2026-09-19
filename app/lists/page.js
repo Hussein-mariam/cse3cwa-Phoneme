@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AddWord from "@/components/AddWord";
-import { hintFor, findPhoneme } from "@/lib/hint";
+import { hintFor } from "@/lib/hint";
 
 // Manage the word lists stored in the database: create, read, update, delete.
 export default function ListsPage() {
@@ -206,7 +206,7 @@ export default function ListsPage() {
                   <span
                     key={i}
                     className="chip"
-                    title={hintFor(findPhoneme(phonemes, symbol))}
+                    title={hintFor(phonemes.find((sound) => sound.symbol === symbol))}
                   >
                     {symbol}
                   </span>
