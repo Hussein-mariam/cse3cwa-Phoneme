@@ -1,36 +1,42 @@
-// the grid has one row for each guess the student is allowed
-
 export default function Grid({ rows, cols, guesses, current }) {
   const board = [];
 
-  for (let r = 0; r < rows; r++) {
+  for (let row = 0; row < rows; row++) {
     const tiles = [];
 
-    for (let c = 0; c < cols; c++) {
+    for (let col = 0; col < cols; col++) {
       let text = "";
       let className = "tile";
 
-      if (r < guesses.length) {
-        // a guess that has already been checked, so show it with its colour
-        text = guesses[r].symbols[c];
-        className = "tile " + guesses[r].result[c];
-      } else if (r === guesses.length) {
-        text = current[c] || "";
+      if (row < guesses.length) {
+        text = guesses[row].symbols[col];
+        className = "tile " + guesses[row].result[col];
+      } else if (row === guesses.length) {
+        if (current[col]) {
+          text = current[col];
+        }
       }
 
       tiles.push(
-        <div key={c} className={className}>
+        <div
+          key={col}
+          className={className}
+        >
           {text}
         </div>
       );
     }
 
     board.push(
-      <div key={r} className="row">
+      <div key={row} className="row">
         {tiles}
       </div>
     );
   }
 
-  return <div className="board">{board}</div>;
+  return (
+    <div className="board">
+      {board}
+    </div>
+  );
 }

@@ -1,130 +1,282 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import { words } from "@/lib/words";
-import { makeGrid, getPath } from "@/lib/wordsearch";
+import {
+  makeGrid,
+  getPath
+} from "@/lib/wordsearch";
+
 import { exportWordSearch } from "@/lib/exportWordSearch";
 import { getHint } from "@/lib/phonemes";
 
-// the five words the puzzle starts with.
-const START = ["chin", "fan", "van", "ring", "sun"];
+const START = [
+  "chin",
+  "fan",
+  "van",
+  "ring",
+  "sun"
+];
 
 export default function WordSearchPage() {
-  const [picked, setPicked] = useState(START);
-  const [size, setSize] = useState(10);
-  const [showEnglish, setShowEnglish] = useState(true);
-  const [puzzle, setPuzzle] = useState(null);
-  const [found, setFound] = useState([]);
-  const [start, setStart] = useState(null);
-  const [msg, setMsg] = useState("");
+  const [picked, setPicked] =
+    useState(START);
 
-  
+  const [size, setSize] =
+    useState(10);
+
+  const [showEnglish, setShowEnglish] =
+    useState(true);
+
+  const [puzzle, setPuzzle] =
+    useState(null);
+
+  const [found, setFound] =
+    useState([]);
+
+  const [start, setStart] =
+    useState(null);
+
+  const [msg, setMsg] =
+    useState("");
+
   useEffect(() => {
-    const list = picked.map((name) => words.find((w) => w.word === name));
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPuzzle(makeGrid(list, size));
+    const selectedWords =
+      picked.map((name) =>
+        words.find(
+          (item) => item.word === name
+        )
+      );
+
+    const newPuzzle =
+      makeGrid(
+        selectedWords,
+        size
+      );
+
+    setPuzzle(newPuzzle);
     setFound([]);
     setStart(null);
   }, [picked, size]);
 
   function changeWord(index, value) {
-    const copy = [...picked];
-    copy[index] = value;
-    setPicked(copy);
+    const newPicked = [...picked];
+
+    newPicked[index] = value;
+
+    setPicked(newPicked);
     setMsg("");
   }
 
   function newGrid() {
-    const list = picked.map((name) => words.find((w) => w.word === name));
-    setPuzzle(makeGrid(list, size));
+    const selectedWords =
+      picked.map((name) =>
+        words.find(
+          (item) => item.word === name
+        )
+      );
+
+    const newPuzzle =
+      makeGrid(
+        selectedWords,
+        size
+      );
+
+    setPuzzle(newPuzzle);
     setFound([]);
     setStart(null);
     setMsg("New grid made.");
   }
 
-  function clickCell(r, c) {
-    // First click sets the start of the word.
+  function clickCell(row, col) {
     if (start === null) {
-      setStart([r, c]);
-      setMsg("Now click the last phoneme.");
+      setStart([row, col]);
+      setMsg(
+        "Now click the last phoneme."
+      );
+
       return;
     }
 
-    const path = getPath(start[0], start[1], r, c);
+    const path = getPath(
+      start[0],
+      start[1],
+      row,
+      col
+    );
+
     setStart(null);
 
     if (path === null) {
-      setMsg("Words go straight across, down or diagonally.");
+      setMsg(
+        "Words go straight across, down or diagonally."
+      );
+
       return;
     }
 
-    // read the squares forwards and backwards so either direction counts
     let text = "";
-    let back = "";
-    for (let i = 0; i < path.length; i++) {
-      text += puzzle.grid[path[i][0]][path[i][1]];
-    }
-    for (let j = path.length - 1; j >= 0; j--) {
-      back += puzzle.grid[path[j][0]][path[j][1]];
+    let backwards = "";
+
+    for (
+      let i = 0;
+      i < path.length;
+      i++
+    ) {
+      text +=
+        puzzle.grid[
+          path[i][0]
+        ][
+          path[i][1]
+        ];
     }
 
-    for (const p of puzzle.placed) {
-      const key = p.phonemes.join("");
+    for (
+      let i = path.length - 1;
+      i >= 0;
+      i--
+    ) {
+      backwards +=
+        puzzle.grid[
+          path[i][0]
+        ][
+          path[i][1]
+        ];
+    }
+
+    for (
+      const item of puzzle.placed
+    ) {
+      const key =
+        item.phonemes.join("");
+
       if (found.includes(key)) {
         continue;
       }
-      if (key === text || key === back) {
-        setFound([...found, key]);
-        setMsg("Found " + p.word + "!");
+
+      if (
+        key === text ||
+        key === backwards
+      ) {
+        const newFound = [
+          ...found,
+          key
+        ];
+
+        setFound(newFound);
+
+        setMsg(
+          "Found " +
+          item.word +
+          "!"
+        );
+
         return;
       }
     }
 
-    setMsg("Not one of the words.");
+    setMsg(
+      "Not one of the words."
+    );
   }
 
   function download() {
-    const html = exportWordSearch(puzzle, showEnglish);
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const html =
+      exportWordSearch(
+        puzzle,
+        showEnglish
+      );
+
+    const blob = new Blob(
+      [html],
+      { type: "text/html" }
+    );
+
+    const url =
+      URL.createObjectURL(blob);
+
+    const link =
+      document.createElement("a");
+
     link.href = url;
-    link.download = "phoneme-word-search.html";
+
+    link.download =
+      "phoneme-word-search.html";
+
     link.click();
+
     URL.revokeObjectURL(url);
-    setMsg("Downloaded phoneme-word-search.html");
+
+    setMsg(
+      "Downloaded phoneme-word-search.html"
+    );
   }
 
   if (puzzle === null) {
-    return <p>Building the grid...</p>;
+    return (
+      <p>
+        Building the grid...
+      </p>
+    );
   }
 
-  // work out which squares belong to words already found.
   const foundCells = [];
-  for (const p of puzzle.placed) {
-    if (found.includes(p.phonemes.join(""))) {
-      for (const cell of p.cells) {
+
+  for (
+    const item of puzzle.placed
+  ) {
+    const key =
+      item.phonemes.join("");
+
+    if (found.includes(key)) {
+      for (
+        const cell of item.cells
+      ) {
         foundCells.push(cell);
       }
     }
   }
 
   const cells = [];
-  for (let r = 0; r < puzzle.size; r++) {
-    for (let c = 0; c < puzzle.size; c++) {
+
+  for (
+    let row = 0;
+    row < puzzle.size;
+    row++
+  ) {
+    for (
+      let col = 0;
+      col < puzzle.size;
+      col++
+    ) {
       let className = "cell";
-      if (foundCells.includes(r + "," + c)) {
+
+      if (
+        foundCells.includes(
+          row + "," + col
+        )
+      ) {
         className = "cell found";
-      } else if (start !== null && start[0] === r && start[1] === c) {
+      } else if (
+        start !== null &&
+        start[0] === row &&
+        start[1] === col
+      ) {
         className = "cell picked";
       }
+
       cells.push(
         <button
-          key={r + "," + c}
+          key={
+            row + "," + col
+          }
           className={className}
-          onClick={() => clickCell(r, c)}
+          onClick={() =>
+            clickCell(row, col)
+          }
         >
-          {puzzle.grid[r][c]}
+          {puzzle.grid[row][col]}
         </button>
       );
     }
@@ -137,32 +289,66 @@ export default function WordSearchPage() {
       <div className="box">
         <h3>Settings</h3>
 
-        {picked.map((name, i) => (
-          <div key={i}>
-            <label htmlFor={"w" + i}>Word {i + 1}</label>
-            <select
-              id={"w" + i}
-              value={name}
-              onChange={(event) => changeWord(i, event.target.value)}
-            >
-              {words.map((w) => (
-                <option key={w.word} value={w.word}>
-                  {w.word} - /{w.phonemes.join(" ")}/
-                </option>
-              ))}
-            </select>
-          </div>
-        ))}
+        {picked.map(
+          (name, index) => (
+            <div key={index}>
+              <label
+                htmlFor={"w" + index}
+              >
+                Word {index + 1}
+              </label>
 
-        <label htmlFor="size">Grid size</label>
+              <select
+                id={"w" + index}
+                value={name}
+                onChange={(event) =>
+                  changeWord(
+                    index,
+                    event.target.value
+                  )
+                }
+              >
+                {words.map(
+                  (item) => (
+                    <option
+                      key={item.word}
+                      value={item.word}
+                    >
+                      {item.word} - /
+                      {item.phonemes.join(" ")}
+                      /
+                    </option>
+                  )
+                )}
+              </select>
+            </div>
+          )
+        )}
+
+        <label htmlFor="size">
+          Grid size
+        </label>
+
         <select
           id="size"
           value={size}
-          onChange={(event) => setSize(Number(event.target.value))}
+          onChange={(event) =>
+            setSize(
+              Number(event.target.value)
+            )
+          }
         >
-          <option value={8}>8 x 8</option>
-          <option value={10}>10 x 10</option>
-          <option value={12}>12 x 12</option>
+          <option value={8}>
+            8 x 8
+          </option>
+
+          <option value={10}>
+            10 x 10
+          </option>
+
+          <option value={12}>
+            12 x 12
+          </option>
         </select>
 
         <label htmlFor="eng">
@@ -170,47 +356,92 @@ export default function WordSearchPage() {
             id="eng"
             type="checkbox"
             checked={showEnglish}
-            onChange={(event) => setShowEnglish(event.target.checked)}
+            onChange={(event) =>
+              setShowEnglish(
+                event.target.checked
+              )
+            }
           />
-          Show English spelling in the word list
+
+          Show English spelling in
+          the word list
         </label>
 
-        <button onClick={newGrid}>New grid</button>
-        <button onClick={download}>Generate</button>
+        <button onClick={newGrid}>
+          New grid
+        </button>
+
+        <button onClick={download}>
+          Generate
+        </button>
       </div>
 
       <div className="box">
         <h3>Preview</h3>
 
         <p>
-          {found.length} of {puzzle.placed.length} found
+          {found.length} of{" "}
+          {puzzle.placed.length} found
         </p>
 
         <div
           className="grid"
-          style={{ gridTemplateColumns: "repeat(" + puzzle.size + ", 1fr)" }}
+          style={{
+            gridTemplateColumns:
+              "repeat(" +
+              puzzle.size +
+              ", 1fr)"
+          }}
         >
           {cells}
         </div>
 
-        {msg && <div className="msg">{msg}</div>}
+        {msg && (
+          <div className="msg">
+            {msg}
+          </div>
+        )}
 
         <h3>Find these words</h3>
+
         <ul className="wordlist">
-          {puzzle.placed.map((p) => (
-            <li
-              key={p.word}
-              className={found.includes(p.phonemes.join("")) ? "done" : ""}
-            >
-              /
-              {p.phonemes.map((s, i) => (
-                <span key={i} className="chip" title={getHint(s)}>
-                  {s}
-                </span>
-              ))}
-              /{showEnglish && " - " + p.word}
-            </li>
-          ))}
+          {puzzle.placed.map(
+            (item) => {
+              const key =
+                item.phonemes.join("");
+
+              return (
+                <li
+                  key={item.word}
+                  className={
+                    found.includes(key)
+                      ? "done"
+                      : ""
+                  }
+                >
+                  /
+
+                  {item.phonemes.map(
+                    (symbol, index) => (
+                      <span
+                        key={index}
+                        className="chip"
+                        title={getHint(symbol)}
+                      >
+                        {symbol}
+                      </span>
+                    )
+                  )}
+
+                  /
+
+                  {showEnglish &&
+                    " - " +
+                    item.word}
+                </li>
+              );
+            }
+          )}
         </ul>
       </div>
     </div>
