@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkListName } from "@/lib/validate";
 
-// GET /api/lists - every word list, with how many words each has.
 export async function GET() {
   try {
     const lists = await prisma.wordList.findMany({
@@ -15,7 +14,6 @@ export async function GET() {
   }
 }
 
-// POST /api/lists - make a new list.
 export async function POST(request: Request) {
   let body;
   try {
@@ -31,7 +29,6 @@ export async function POST(request: Request) {
 
   const name = body.name.trim();
 
-  // 409 means "conflict" - the name is already taken.
   const existing = await prisma.wordList.findUnique({ where: { name: name } });
   if (existing) {
     return NextResponse.json({ error: "A list with that name already exists." }, { status: 409 });

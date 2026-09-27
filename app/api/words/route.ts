@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { checkWord, parseId } from "@/lib/validate";
 import { getWords, soundRows } from "@/lib/wordsDb";
 
-// GET /api/words?listId=2 - the words in one list.
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const listId = parseId(url.searchParams.get("listId") || "");
@@ -19,7 +18,6 @@ export async function GET(request: Request) {
   }
 }
 
-// POST /api/words - add a word to a list.
 export async function POST(request: Request) {
   let body;
   try {
@@ -38,7 +36,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No list with that id." }, { status: 404 });
   }
 
-  // Get every symbol the database knows, so the word can be checked against them.
   const allPhonemes = await prisma.phoneme.findMany();
   const known = allPhonemes.map((p) => p.symbol);
 
@@ -55,8 +52,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    // The word and its sound rows are saved in one go, so if anything fails
-    // nothing is saved - there is never a word with half its sounds.
+    // saved together so a word never ends up with half its sounds
     const word = await prisma.word.create({
       data: {
         english: english,

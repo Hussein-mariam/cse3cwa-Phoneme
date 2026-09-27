@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useState } from "react";
 
 export default function Nav() {
-  // Whether the small screen menu is open.
   const [open, setOpen] = useState(false);
 
   return (

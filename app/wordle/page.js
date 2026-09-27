@@ -5,29 +5,23 @@ import { score } from "@/lib/score";
 import Grid from "@/components/Grid";
 import Keypad from "@/components/Keypad";
 
-// The builder now loads its words from the database instead of a file, and
-// saves the settings as a named activity that can be generated later.
 export default function WordlePage() {
-  // Loaded from the API.
   const [phonemes, setPhonemes] = useState([]);
   const [lists, setLists] = useState([]);
   const [words, setWords] = useState([]);
 
-  // Settings the teacher controls.
   const [listId, setListId] = useState(null);
   const [chosen, setChosen] = useState(null);
   const [maxGuesses, setMaxGuesses] = useState(6);
   const [showLetters, setShowLetters] = useState(true);
   const [activityName, setActivityName] = useState("My wordle");
 
-  // State for the preview game.
   const [current, setCurrent] = useState([]);
   const [guesses, setGuesses] = useState([]);
   const [keyStates, setKeyStates] = useState({});
   const [msg, setMsg] = useState("");
   const [over, setOver] = useState(false);
 
-  // Load the sounds and the lists once.
   useEffect(() => {
     async function load() {
       const phonemesRes = await fetch("/api/phonemes");
@@ -44,7 +38,6 @@ export default function WordlePage() {
     load();
   }, []);
 
-  // Whenever the chosen list changes, fetch its words.
   useEffect(() => {
     if (listId === null) {
       return;
@@ -73,7 +66,7 @@ export default function WordlePage() {
     if (over || !word || current.length >= word.phonemes.length) {
       return;
     }
-    // The arrow function makes sure fast clicks do not lose a phoneme.
+    // arrow function so fast clicks don't lose a phoneme
     setCurrent((row) => [...row, symbol]);
     setMsg("");
   }
@@ -99,7 +92,7 @@ export default function WordlePage() {
     const result = score(current, word.phonemes);
     const played = [...guesses, { symbols: current, result: result }];
 
-    // Colour the keypad, but never downgrade a key that is already green.
+    // colour the keys, once green it stays green
     const states = { ...keyStates };
     for (let i = 0; i < current.length; i++) {
       if (states[current[i]] !== "correct") {
@@ -111,7 +104,6 @@ export default function WordlePage() {
     setKeyStates(states);
     setCurrent([]);
 
-    // Won only if every single tile came back correct.
     let win = true;
     for (let i = 0; i < result.length; i++) {
       if (result[i] !== "correct") {
@@ -130,7 +122,6 @@ export default function WordlePage() {
     }
   }
 
-  // Saves the settings, then asks the server to build the file from them.
   async function generate() {
     if (!word) {
       setMsg("Pick a word first.");
@@ -156,7 +147,6 @@ export default function WordlePage() {
       return;
     }
 
-    // Clicking a link downloads the file without leaving this page.
     const link = document.createElement("a");
     link.href = "/api/activities/" + activity.id + "/download";
     link.click();
@@ -215,7 +205,6 @@ export default function WordlePage() {
           id="guesses"
           value={maxGuesses}
           onChange={(event) => {
-            // A select always gives back text, so this turns "6" into 6.
             setMaxGuesses(Number(event.target.value));
             reset();
           }}
@@ -253,7 +242,6 @@ export default function WordlePage() {
 
         {word && (
           <>
-            {/* the board size comes from the word stored in the database */}
             <Grid
               rows={maxGuesses}
               cols={word.phonemes.length}

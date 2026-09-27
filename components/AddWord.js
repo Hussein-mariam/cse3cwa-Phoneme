@@ -3,9 +3,6 @@
 import { useState } from "react";
 import Keypad from "@/components/Keypad";
 
-// Lets a teacher type a spelling and tap the sounds. It does not talk to the
-// database itself - it hands the finished word to whichever page is using it,
-// and that page saves it. Keeps this component reusable.
 export default function AddWord({ phonemes, onAdd, busy }) {
   const [spelling, setSpelling] = useState("");
   const [parts, setParts] = useState([]);
@@ -23,8 +20,6 @@ export default function AddWord({ phonemes, onAdd, busy }) {
   async function add() {
     const name = spelling.trim().toLowerCase();
 
-    // The server checks all of this again. These messages are just so the
-    // teacher finds out before the request is sent.
     if (name === "") {
       setMsg("Type the English spelling first.");
       return;

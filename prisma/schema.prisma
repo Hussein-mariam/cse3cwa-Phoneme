@@ -1,6 +1,3 @@
-// Assessment 2 database schema.
-// Run `npx prisma migrate dev` after changing this file.
-
 generator client {
   provider = "prisma-client"
   output   = "../lib/generated/prisma"
@@ -10,7 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-// The sound inventory shown on the keypad.
 model Phoneme {
   id      Int    @id @default(autoincrement())
   symbol  String @unique
@@ -20,7 +16,6 @@ model Phoneme {
   words WordPhoneme[]
 }
 
-// A named group of words, e.g. "Week 3 - th sounds".
 model WordList {
   id          Int      @id @default(autoincrement())
   name        String   @unique
@@ -46,8 +41,7 @@ model Word {
   @@unique([listId, english])
 }
 
-// One row per sound, in order. This is how a two-character symbol like tʃ
-// stays a single unit instead of being split into two letters.
+// one row per sound so something like tʃ stays as one sound
 model WordPhoneme {
   id        Int @id @default(autoincrement())
   wordId    Int
@@ -60,8 +54,6 @@ model WordPhoneme {
   @@unique([wordId, position])
 }
 
-// A saved builder configuration. Every setting the teacher picks is stored
-// here, so the same activity can be generated again later.
 model Activity {
   id           Int          @id @default(autoincrement())
   name         String

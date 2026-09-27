@@ -1,7 +1,5 @@
 #!/bin/sh
-# Waits until Postgres is accepting connections before carrying on.
-# The app starts faster than the database, so without this the first
-# migration fails on a fresh "docker compose up".
+# the app starts before postgres is ready, so wait for it
 
 host="$1"
 port="$2"

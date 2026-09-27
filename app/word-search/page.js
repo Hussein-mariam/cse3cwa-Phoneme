@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { makeGrid, getPath } from "@/lib/wordsearch";
 import { hintFor } from "@/lib/hint";
 
-// The word search is now built from a list stored in the database.
 export default function WordSearchPage() {
   const [phonemes, setPhonemes] = useState([]);
   const [lists, setLists] = useState([]);
@@ -36,9 +35,7 @@ export default function WordSearchPage() {
     load();
   }, []);
 
-  // Load the list's words, then build a grid from them.
-  // Math.random only runs here, after the page has loaded, so the server and
-  // the browser never disagree about what the grid looks like.
+  // made after the page loads so the server and browser don't get different grids
   useEffect(() => {
     if (listId === null) {
       return;
@@ -66,7 +63,6 @@ export default function WordSearchPage() {
   }
 
   function clickCell(r, c) {
-    // First click sets the start of the word.
     if (start === null) {
       setStart([r, c]);
       setMsg("Now click the last sound.");
@@ -81,7 +77,7 @@ export default function WordSearchPage() {
       return;
     }
 
-    // Read the squares forwards and backwards, so either direction counts.
+    // check forwards and backwards so either way counts
     let text = "";
     let back = "";
     for (let i = 0; i < path.length; i++) {
@@ -125,7 +121,6 @@ export default function WordSearchPage() {
       return;
     }
 
-    // Clicking a link downloads the file without leaving this page.
     const link = document.createElement("a");
     link.href = "/api/activities/" + activity.id + "/download";
     link.click();
@@ -143,7 +138,6 @@ export default function WordSearchPage() {
     );
   }
 
-  // Work out which squares belong to words already found.
   const foundCells = [];
   if (puzzle) {
     for (const p of puzzle.placed) {

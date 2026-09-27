@@ -1,3 +1,2 @@
-# The .sh files run inside the Linux container, and Linux can't read Windows
-# line endings. This keeps them as LF even when the repo is cloned on Windows.
+# keep .sh files as LF or linux can't run them
 *.sh text eol=lf

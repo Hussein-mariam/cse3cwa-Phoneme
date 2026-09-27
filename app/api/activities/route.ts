@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkActivity } from "@/lib/validate";
 
-// GET /api/activities - every saved activity, newest first.
 export async function GET() {
   try {
     const activities = await prisma.activity.findMany({
@@ -15,7 +14,6 @@ export async function GET() {
   }
 }
 
-// POST /api/activities - save the builder settings under a name.
 export async function POST(request: Request) {
   let body;
   try {
@@ -43,7 +41,6 @@ export async function POST(request: Request) {
     );
   }
 
-  // A wordle names the word to guess. It has to be a word from the chosen list.
   let targetWordId: number | null = null;
   if (body.targetWordId) {
     const word = await prisma.word.findFirst({
@@ -55,8 +52,6 @@ export async function POST(request: Request) {
     targetWordId = word.id;
   }
 
-  // Anything left out (for example gridSize on a wordle) gets the default
-  // from the schema.
   try {
     const activity = await prisma.activity.create({
       data: {

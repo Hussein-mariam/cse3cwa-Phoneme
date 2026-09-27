@@ -2,10 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkActivity, parseId } from "@/lib/validate";
 
-// In Next 16 the id from the URL arrives as a promise, so it has to be awaited.
 type Params = { params: Promise<{ id: string }> };
 
-// GET /api/activities/3 - one saved activity.
 export async function GET(request: Request, { params }: Params) {
   const p = await params;
   const id = parseId(p.id);
@@ -23,7 +21,6 @@ export async function GET(request: Request, { params }: Params) {
   return NextResponse.json(activity);
 }
 
-// PUT /api/activities/3 - change any of the saved settings.
 export async function PUT(request: Request, { params }: Params) {
   const p = await params;
   const id = parseId(p.id);
@@ -53,7 +50,6 @@ export async function PUT(request: Request, { params }: Params) {
     return NextResponse.json({ error: "No list with that id." }, { status: 404 });
   }
 
-  // A wordle names the word to guess. It has to be a word from the chosen list.
   let targetWordId: number | null = null;
   if (body.targetWordId) {
     const word = await prisma.word.findFirst({
@@ -80,7 +76,6 @@ export async function PUT(request: Request, { params }: Params) {
   return NextResponse.json(updated);
 }
 
-// DELETE /api/activities/3
 export async function DELETE(request: Request, { params }: Params) {
   const p = await params;
   const id = parseId(p.id);

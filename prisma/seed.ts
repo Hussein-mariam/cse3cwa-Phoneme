@@ -1,5 +1,4 @@
-// Fills an empty database with the phoneme inventory and some starting word
-// lists. Safe to run more than once - it skips anything already there.
+// adds the phonemes and starter lists, skips anything already there
 
 import { PrismaClient } from "../lib/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -53,7 +52,6 @@ const lists = [
 ];
 
 async function main() {
-  // 1. The phoneme inventory. Every word's sounds must point at one of these.
   for (const p of phonemes) {
     await prisma.phoneme.upsert({
       where: { symbol: p.symbol },
@@ -63,7 +61,6 @@ async function main() {
   }
   console.log("phonemes:", await prisma.phoneme.count());
 
-  // 2. The word lists.
   for (const list of lists) {
     const saved = await prisma.wordList.upsert({
       where: { name: list.name },
@@ -79,7 +76,6 @@ async function main() {
         continue;
       }
 
-      // Each sound becomes its own row, with its position in the word.
       await prisma.word.create({
         data: {
           english: word.english,
@@ -100,8 +96,6 @@ async function main() {
   console.log("word sounds:", await prisma.wordPhoneme.count());
 }
 
-// Run it. If anything fails, print the error and exit with a failure code so
-// Docker's startup stops instead of starting the app with no data.
 main()
   .catch((error) => {
     console.error(error);

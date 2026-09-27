@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import AddWord from "@/components/AddWord";
 import { hintFor } from "@/lib/hint";
 
-// Manage the word lists stored in the database: create, read, update, delete.
 export default function ListsPage() {
   const [lists, setLists] = useState([]);
   const [phonemes, setPhonemes] = useState([]);
@@ -15,7 +14,6 @@ export default function ListsPage() {
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
 
-  // Load the lists and the sound inventory once, when the page opens.
   useEffect(() => {
     async function load() {
       const listsRes = await fetch("/api/lists");
@@ -97,7 +95,6 @@ export default function ListsPage() {
     await refreshLists();
   }
 
-  // Returns an error message, or nothing if it saved. AddWord shows it.
   async function addWord(word) {
     setBusy(true);
     const res = await fetch("/api/words", {

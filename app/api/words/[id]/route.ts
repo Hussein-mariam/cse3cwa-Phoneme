@@ -3,10 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { checkWord, parseId } from "@/lib/validate";
 import { getWords, soundRows } from "@/lib/wordsDb";
 
-// In Next 16 the id from the URL arrives as a promise, so it has to be awaited.
 type Params = { params: Promise<{ id: string }> };
 
-// GET /api/words/5 - one word and its sounds.
 export async function GET(request: Request, { params }: Params) {
   const p = await params;
   const id = parseId(p.id);
@@ -21,7 +19,6 @@ export async function GET(request: Request, { params }: Params) {
   return NextResponse.json(found[0]);
 }
 
-// PUT /api/words/5 - change the spelling and/or the sounds.
 export async function PUT(request: Request, { params }: Params) {
   const p = await params;
   const id = parseId(p.id);
@@ -51,14 +48,12 @@ export async function PUT(request: Request, { params }: Params) {
 
   const english = body.english.trim().toLowerCase();
 
-  // Another word in the same list with this spelling is a clash. This word is fine.
   const clash = await prisma.word.findFirst({ where: { listId: word.listId, english: english } });
   if (clash && clash.id !== id) {
     return NextResponse.json({ error: english + " is already in this list." }, { status: 409 });
   }
 
-  // Deleting the old sound rows and saving the new ones is simpler than
-  // working out which sounds changed.
+  // easier to just replace all the sounds than work out which ones changed
   await prisma.word.update({
     where: { id: id },
     data: {
@@ -71,7 +66,6 @@ export async function PUT(request: Request, { params }: Params) {
   return NextResponse.json(saved[0]);
 }
 
-// DELETE /api/words/5 - its sound rows are deleted with it (onDelete: Cascade).
 export async function DELETE(request: Request, { params }: Params) {
   const p = await params;
   const id = parseId(p.id);

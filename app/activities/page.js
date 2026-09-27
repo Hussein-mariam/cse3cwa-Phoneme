@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-// Every activity saved from the Wordle and Word Search pages.
 export default function ActivitiesPage() {
   const [activities, setActivities] = useState([]);
   const [msg, setMsg] = useState("");
@@ -20,7 +19,6 @@ export default function ActivitiesPage() {
     setActivities(await res.json());
   }
 
-  // Saves the activity again with some of its settings changed.
   async function update(activity, changes) {
     const res = await fetch("/api/activities/" + activity.id, {
       method: "PUT",
@@ -33,7 +31,6 @@ export default function ActivitiesPage() {
     await refresh();
   }
 
-  // Clicking a link downloads the file without leaving this page.
   function generate(activity) {
     const link = document.createElement("a");
     link.href = "/api/activities/" + activity.id + "/download";

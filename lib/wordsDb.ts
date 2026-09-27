@@ -1,11 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
-// Each sound of a word is stored as its own row in the WordPhoneme table.
-// This loads words together with those rows, in order, and turns them back
-// into a simple list like ["tʃ", "ɪ", "n"] for the rest of the app.
-//
-// getWords({ listId: 2 }) gives every word in list 2.
-// getWords({ id: 5 }) gives just word 5 (or nothing if it doesn't exist).
+// sounds are saved one row each, this turns them back into a list like ["tʃ", "ɪ", "n"]
 export async function getWords(where: { listId?: number; id?: number }) {
   const words = await prisma.word.findMany({
     where: where,
@@ -21,8 +16,6 @@ export async function getWords(where: { listId?: number; id?: number }) {
   }));
 }
 
-// Turns ["tʃ", "ɪ", "n"] into the rows Prisma needs to save them: one row per
-// sound, with its position, linked to the phoneme that has that symbol.
 export function soundRows(symbols: string[]) {
   const rows = [];
 
