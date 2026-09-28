@@ -86,3 +86,17 @@ export function parseId(value: string): number | null {
   }
   return null;
 }
+
+// a page visit: which page (like /wordle) and how many whole seconds it was open
+export function checkVisit(body: Record<string, unknown>): string | null {
+  if (typeof body.page !== "string" || !body.page.startsWith("/") || body.page.length > 100) {
+    return "page must be a path like /wordle.";
+  }
+  if (typeof body.seconds !== "number" || !Number.isInteger(body.seconds)) {
+    return "seconds must be a whole number.";
+  }
+  if (body.seconds < 1 || body.seconds > 3600) {
+    return "seconds must be between 1 and 3600.";
+  }
+  return null;
+}

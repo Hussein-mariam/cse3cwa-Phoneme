@@ -64,11 +64,35 @@ model Activity {
   showEnglish  Boolean      @default(true)
   listId       Int
   targetWordId Int?
+  simulated    Boolean      @default(false)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
-  list       WordList @relation(fields: [listId], references: [id], onDelete: Cascade)
-  targetWord Word?    @relation(fields: [targetWordId], references: [id], onDelete: SetNull)
+  list       WordList        @relation(fields: [listId], references: [id], onDelete: Cascade)
+  targetWord Word?           @relation(fields: [targetWordId], references: [id], onDelete: SetNull)
+  logs       GenerationLog[]
+}
+
+// one row every time Generate is pressed, whether it worked or not
+model GenerationLog {
+  id         Int          @id @default(autoincrement())
+  activityId Int?
+  type       ActivityType
+  success    Boolean
+  message    String?
+  simulated  Boolean      @default(false)
+  createdAt  DateTime     @default(now())
+
+  activity Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
+}
+
+// how long someone stayed on a page
+model PageVisit {
+  id        Int      @id @default(autoincrement())
+  page      String
+  seconds   Int
+  simulated Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
 
 enum ActivityType {

@@ -2,6 +2,7 @@ import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import Theme from "@/components/Theme";
+import PageTimer from "@/components/PageTimer";
 
 export const metadata = {
   title: "Phoneme Wordle Builder",
@@ -13,9 +14,10 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <Theme />
+        <PageTimer />
 
         <div className="header">
-          <h1>Assessment 2 - Phoneme Activity Builder</h1>
+          <h1>Assessment 3 - Phoneme Activity Builder</h1>
         </div>
 
         <Nav />
