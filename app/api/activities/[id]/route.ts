@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkActivity, parseId } from "@/lib/validate";
+import { difficultyFor } from "@/lib/difficulty";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -67,6 +68,7 @@ export async function PUT(request: Request, { params }: Params) {
       name: body.name.trim(),
       listId: body.listId,
       targetWordId: targetWordId,
+      difficulty: difficultyFor(activity.type, body.maxGuesses ?? activity.maxGuesses, body.gridSize ?? activity.gridSize),
       maxGuesses: body.maxGuesses,
       gridSize: body.gridSize,
       showLetters: body.showLetters,

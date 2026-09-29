@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkActivity } from "@/lib/validate";
+import { difficultyFor } from "@/lib/difficulty";
 
 export async function GET() {
   try {
@@ -59,6 +60,7 @@ export async function POST(request: Request) {
         type: body.type,
         listId: body.listId,
         targetWordId: targetWordId,
+        difficulty: difficultyFor(body.type, body.maxGuesses ?? 6, body.gridSize ?? 10),
         maxGuesses: body.maxGuesses,
         gridSize: body.gridSize,
         showLetters: body.showLetters,

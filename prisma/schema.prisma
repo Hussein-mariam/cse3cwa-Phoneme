@@ -58,6 +58,7 @@ model Activity {
   id           Int          @id @default(autoincrement())
   name         String
   type         ActivityType
+  difficulty   Difficulty   @default(normal)
   maxGuesses   Int          @default(6)
   gridSize     Int          @default(10)
   showLetters  Boolean      @default(true)
@@ -98,4 +99,11 @@ model PageVisit {
 enum ActivityType {
   wordle
   wordsearch
+}
+
+// worked out from the settings: wordle 8/6/4 guesses, word search 8/10/12 grid
+enum Difficulty {
+  easy
+  normal
+  hard
 }
