@@ -14,6 +14,8 @@ export default function Nav() {
         <Link href="/wordle">Wordle</Link>
         <Link href="/word-search">Word Search</Link>
         <Link href="/activities">Activities</Link>
+        <Link href="/dashboard">Dashboard</Link>
+        <Link href="/reports">Reports</Link>
         <Link href="/about">About</Link>
         <Link href="/settings">Settings</Link>
       </div>
@@ -43,6 +45,12 @@ export default function Nav() {
           </Link>
           <Link href="/activities" onClick={() => setOpen(false)}>
             Activities
+          </Link>
+          <Link href="/dashboard" onClick={() => setOpen(false)}>
+            Dashboard
+          </Link>
+          <Link href="/reports" onClick={() => setOpen(false)}>
+            Reports
           </Link>
           <Link href="/about" onClick={() => setOpen(false)}>
             About
