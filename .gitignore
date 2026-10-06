@@ -42,3 +42,14 @@ next-env.d.ts
 
 # Prisma generated client (rebuilt by `prisma generate`)
 lib/generated
+
+# playwright output
+/test-results/
+/playwright-report/
+
+# jmeter output
+/jmeter-results/
+jmeter.log
+
+# lighthouse raw data (the .html reports are kept)
+/lighthouse/**/*.json
