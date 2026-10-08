@@ -6,6 +6,7 @@
 
 body {
   font-family: Arial, Helvetica, sans-serif;
+  background: white;
   color: #121213;
   line-height: 1.5;
 }
@@ -28,6 +29,8 @@ main {
   padding: 28px 24px 48px;
   max-width: 900px;
   margin: 0 auto;
+  /* keeps the footer below the screen so it doesn't jump when data loads */
+  min-height: 100vh;
 }
 
 h2 {
@@ -195,7 +198,7 @@ button:hover {
   display: block;
   font-size: 10px;
   font-weight: normal;
-  color: #6e6e6e;
+  color: #444444;
 }
 
 .key .tip {
@@ -365,8 +368,12 @@ footer {
 [data-theme="dark"] .key,
 [data-theme="dark"] button,
 [data-theme="dark"] .menubtn {
-  background: #818384;
+  background: #565758;
   color: #f5f5f5;
+}
+
+[data-theme="dark"] main a {
+  color: #8ab4f8;
 }
 
 [data-theme="dark"] .key:hover,
@@ -463,3 +470,40 @@ footer {
     font-size: 18px;
   }
 }
+
+/* Dashboard */
+
+.good {
+  color: #3d7a36;
+}
+
+.bad {
+  color: #c0392b;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid #d3d6da;
+}
+
+[data-theme="dark"] .good {
+  color: #8fd18a;
+}
+
+[data-theme="dark"] .bad {
+  color: #ff8a80;
+}
+
+[data-theme="dark"] .table th,
+[data-theme="dark"] .table td {
+  border-bottom-color: #3a3a3c;
+}
+
