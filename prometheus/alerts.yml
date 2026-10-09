@@ -1,0 +1,28 @@
+# shown on the Alerts page in Prometheus (http://localhost:9090/alerts)
+groups:
+  - name: phoneme
+    rules:
+      - alert: AppDown
+        expr: up{job="phoneme-app"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: The app is not answering /api/metrics
+
+      - alert: DatabaseDown
+        expr: phoneme_db_up == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: The app is up but the database is not answering
+
+      # more than 1 in 5 generations failing over the last 10 minutes
+      - alert: HighGenerationFailureRate
+        expr: sum(increase(phoneme_generations_total{result="failed"}[10m])) / sum(increase(phoneme_generations_total[10m])) > 0.2
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: More than 20% of generations are failing

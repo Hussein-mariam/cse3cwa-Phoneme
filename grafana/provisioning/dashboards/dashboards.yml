@@ -1,0 +1,8 @@
+# loads every dashboard in grafana/dashboards when Grafana starts
+apiVersion: 1
+
+providers:
+  - name: phoneme
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards
