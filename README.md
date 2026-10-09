@@ -1,14 +1,15 @@
 # Phoneme Wordle Builder
 
-Assessment 2 cse3cwa
+Assessment 3 cse3cwa
 
 Name: Mariam
+
 Student number: 21582294
 
-A website for Speech Pathology teachers. The teacher makes word lists out of
-phoneme symbols, builds a Wordle or Word Search from a list, and downloads it
-as a single HTML file that students can play in any browser. The lists and
-saved activities are stored in a Postgres database.
+A website for Speech Pathology teachers. Teachers make word lists from phoneme
+sounds, then build a Wordle or Word Search game that students can play in any
+browser. Assessment 3 adds a dashboard, reports, alerts, monitoring and testing.
+It also runs on AWS EC2.
 
 ## Running it
 
@@ -16,30 +17,32 @@ saved activities are stored in a Postgres database.
 docker compose up --build
 ```
 
-Then open http://localhost
+- Website: http://localhost
+- Grafana: http://localhost:3001 (admin / admin)
+- Prometheus: http://localhost:9090
+- Jaeger: http://localhost:16686
+
+To add sample data: `docker compose exec app npm run simulate` (add `clear` to remove it)
 
 ## Pages
 
-- **Home** - what the site does
-- **Word Lists** - add, edit and delete word lists and words
-- **Wordle** and **Word Search** - build an activity from a list and download it
-- **Activities** - saved activities, which can be generated again, changed or deleted
-- **About** - what the project is and my details
-- **Settings** - theme and text size, saved in cookies
+- **Word Lists**, **Wordle**, **Word Search**, **Activities** - make lists and games
+- **Dashboard** - activity counts, most-used type, successes, failures, time on page, health and alerts
+- **Reports** - usage over the last 14 days and recent failures
+- **Home**, **About**, **Settings**
 
 ## Folders
 
-- app/ - the pages, the API routes (app/api) and the health check (app/health)
-- components/ - parts used on more than one page, like the Keypad and Nav
-- lib/ - the logic, like the database helpers, validation, scoring, the word search grid and the export files
-- prisma/ - the database tables, migrations and starting data
+app/ (pages and API), components/ (shared parts), lib/ (logic), prisma/ (database),
+tests/ (Playwright and JMeter), lighthouse/ (reports)
 
-## Things worth knowing 
+## Test results
 
-Each sound is stored as its own row in the database, not as one string. Some
-sounds are written with two characters, like tʃ, so splitting a string would
-give the wrong number of tiles. "chin" is four letters but three sounds.
+- **Playwright** - 2 tests pass, one for editing words and one for making and playing a Wordle
+- **JMeter** - no errors up to 10,000 sessions. Generating a game is the slowest step
+- **Lighthouse** - fixed low colour contrast and pages jumping while loading. Every page now scores 100
 
-Marking a guess takes two passes. The first finds sounds in the right place and
-crosses them off, the second looks for the leftovers. That is what makes words
-with a repeated sound, like "tent", work.
+## Things worth knowing
+
+- Each sound is saved as its own row, because some sounds like tʃ use two letters
+- Every Generate adds a new row to a log, so the dashboard counts never get mixed up
