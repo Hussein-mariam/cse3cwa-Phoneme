@@ -1,2 +1,5 @@
 # keep .sh files as LF or linux can't run them
 *.sh text eol=lf
+
+# lighthouse reports are generated, so github leaves them out of the languages bar
+lighthouse/** linguist-generated
