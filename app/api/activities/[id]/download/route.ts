@@ -5,14 +5,17 @@ import { getWords } from "@/lib/wordsDb";
 import { exportWordle } from "@/lib/exportWordle";
 import { makeGrid } from "@/lib/wordsearch";
 import { exportWordSearch } from "@/lib/exportWordSearch";
+import { step } from "@/lib/tracing";
 
 type Params = { params: Promise<{ id: string }> };
 
 // saves every Generate press so the dashboard can count successes and failures
 async function logGeneration(activityId: number, type: "wordle" | "wordsearch", success: boolean, message: string | null) {
-  await prisma.generationLog.create({
-    data: { activityId: activityId, type: type, success: success, message: message },
-  });
+  await step("log generation", () =>
+    prisma.generationLog.create({
+      data: { activityId: activityId, type: type, success: success, message: message },
+    })
+  );
 }
 
 export async function GET(request: Request, { params }: Params) {
@@ -22,12 +25,13 @@ export async function GET(request: Request, { params }: Params) {
     return NextResponse.json({ error: "That is not a valid activity id." }, { status: 400 });
   }
 
-  const activity = await prisma.activity.findUnique({ where: { id: id } });
+  // each step below shows up as its own bar in Jaeger
+  const activity = await step("load activity", () => prisma.activity.findUnique({ where: { id: id } }));
   if (!activity) {
     return NextResponse.json({ error: "No activity with that id." }, { status: 404 });
   }
 
-  const words = await getWords({ listId: activity.listId });
+  const words = await step("load words", () => getWords({ listId: activity.listId }));
 
   if (words.length === 0) {
     await logGeneration(activity.id, activity.type, false, "The word list is empty.");
@@ -50,10 +54,10 @@ export async function GET(request: Request, { params }: Params) {
         target = { word: answer.english, phonemes: answer.phonemes };
       }
 
-      html = exportWordle(target, activity.maxGuesses, activity.showLetters);
+      html = await step("export wordle", () => exportWordle(target, activity.maxGuesses, activity.showLetters));
       filename = "phoneme-wordle.html";
     } else {
-      const puzzle = makeGrid(forExport, activity.gridSize);
+      const puzzle = await step("build grid", () => makeGrid(forExport, activity.gridSize));
 
       // makeGrid skips a word if it can't fit it
       const missing = forExport.length - puzzle.placed.length;
@@ -66,7 +70,7 @@ export async function GET(request: Request, { params }: Params) {
         );
       }
 
-      html = exportWordSearch(puzzle, activity.showEnglish);
+      html = await step("export word search", () => exportWordSearch(puzzle, activity.showEnglish));
       filename = "phoneme-word-search.html";
     }
 

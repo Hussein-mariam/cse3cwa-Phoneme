@@ -11,6 +11,8 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://user:password@postgres:5432/phonemedb
+      # where instrumentation.ts sends the traces
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
     restart: unless-stopped
 
   postgres:
@@ -24,6 +26,45 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # collects /api/metrics every 15 seconds, http://localhost:9090
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: phoneme-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+    depends_on:
+      - app
+    restart: unless-stopped
+
+  # graphs from Prometheus, http://localhost:3001 (login admin / admin)
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: phoneme-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/phoneme.json
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # shows each request as a timeline of steps, http://localhost:16686
+  jaeger:
+    image: jaegertracing/jaeger:2.1.0
+    container_name: phoneme-jaeger
+    ports:
+      - "16686:16686"
+    restart: unless-stopped
 
 volumes:
   postgres_data:
